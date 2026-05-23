@@ -58,8 +58,9 @@ def get_checklist(leave_type):
     return checklists.get(leave_type)
 
 
-def print_checklist(checklist):
-    print(f"\n{checklist['title']}")
+def print_checklist(checklist, soldier_name):
+    print(f"\nSoldier: {soldier_name}")
+    print(f"{checklist['title']}")
     print("-" * len(checklist["title"]))
 
     for number, item in enumerate(checklist["items"], start=1):
@@ -67,9 +68,22 @@ def print_checklist(checklist):
 
 
 def main():
+    soldier_name = input("Enter Soldier name: ")
+
     while True:
         display_menu()
         choice = input("\nSelect an option: ")
+
+        if choice == "5":
+            print(f"Goodbye, {soldier_name}.")
+            break
+
+        checklist = get_checklist(choice)
+
+        if checklist:
+            print_checklist(checklist, soldier_name)
+        else:
+            print("Invalid option. Please select a number from 1 to 5.")
 
         if choice == "5":
             print("Goodbye.")
@@ -78,7 +92,7 @@ def main():
         checklist = get_checklist(choice)
 
         if checklist:
-            print_checklist(checklist)
+            print_checklist(checklist,soldier_name)
         else:
             print("Invalid option. Please select a number from 1 to 5.")
 
