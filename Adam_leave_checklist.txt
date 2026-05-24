@@ -1,6 +1,6 @@
 Soldier: Adam
-Start Date: 2020-01-02
-End Date: 2020-01-03
+Start Date: 2020-01-01
+End Date: 2020-01-02
 Total Leave Days: 1
 
 Ordinary Leave Checklist

@@ -201,19 +201,20 @@ def get_leave_dates():
             return start_date, end_date
 
 def main():
-    soldier_name = input(
-        "Enter Soldier name: "
-    )
-
-    start_date, end_date = get_leave_dates()
-
     while True:
+
+        soldier_name = input(
+            "\nEnter Soldier name: "
+        )
+
+        start_date, end_date = get_leave_dates()
+
         display_menu()
 
         choice = input(
             "\nSelect an option: "
         )
-    
+
         if choice == "5":
             print(
                 f"Goodbye, {soldier_name}."
@@ -234,6 +235,19 @@ def main():
                 "Invalid option. "
                 "Please select a number from 1 to 5."
             )
+
+        run_again = input(
+            "\nWould you like to create "
+            "another checklist? "
+            "(yes/no): "
+        ).lower()
+
+        if run_again != "yes":
+            print(
+                f"\nGoodbye, "
+                f"{soldier_name}."
+            )
+            break
 
 if __name__ == "__main__":
     main()
