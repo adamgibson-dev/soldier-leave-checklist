@@ -86,6 +86,14 @@ def print_checklist(
     ):
         print(f"{number}. {item}")
 
+    save_checklist_to_file(
+        checklist,
+        soldier_name,
+        start_date,
+        end_date,
+        leave_days
+    )
+
 def calculate_leave_days(start_date, end_date):
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
@@ -93,6 +101,54 @@ def calculate_leave_days(start_date, end_date):
     leave_days = (end - start).days
 
     return leave_days
+
+def save_checklist_to_file(
+    checklist,
+    soldier_name,
+    start_date,
+    end_date,
+    leave_days
+):
+    filename = "leave_checklist.txt"
+
+    with open(filename, "w") as file:
+        file.write(
+            f"Soldier: {soldier_name}\n"
+        )
+
+        file.write(
+            f"Start Date: {start_date}\n"
+        )
+
+        file.write(
+            f"End Date: {end_date}\n"
+        )
+
+        file.write(
+            f"Total Leave Days: {leave_days}\n\n"
+        )
+
+        file.write(
+            f"{checklist['title']}\n"
+        )
+
+        file.write(
+            "-" * len(checklist["title"])
+            + "\n"
+        )
+
+        for number, item in enumerate(
+            checklist["items"],
+            start=1
+        ):
+            file.write(
+                f"{number}. {item}\n"
+            )
+
+    print(
+        "\nChecklist saved as "
+        "leave_checklist.txt"
+    )
 
 def main():
     soldier_name = input("Enter Soldier name: ")
