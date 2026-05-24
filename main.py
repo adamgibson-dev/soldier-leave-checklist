@@ -1,3 +1,5 @@
+from datetime import datetime
+
 def display_menu():
     print("\nSoldier Leave Checklist Generator")
     print("1. Ordinary Leave")
@@ -64,9 +66,15 @@ def print_checklist(
     start_date,
     end_date
 ):
+    leave_days = calculate_leave_days(
+        start_date,
+        end_date
+    )
+
     print(f"\nSoldier: {soldier_name}")
     print(f"Start Date: {start_date}")
     print(f"End Date: {end_date}")
+    print(f"Total Leave Days: {leave_days}")
     print()
 
     print(f"{checklist['title']}")
@@ -78,6 +86,13 @@ def print_checklist(
     ):
         print(f"{number}. {item}")
 
+def calculate_leave_days(start_date, end_date):
+    start = datetime.strptime(start_date, "%Y-%m-%d")
+    end = datetime.strptime(end_date, "%Y-%m-%d")
+
+    leave_days = (end - start).days
+
+    return leave_days
 
 def main():
     soldier_name = input("Enter Soldier name: ")
