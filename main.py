@@ -95,6 +95,24 @@ def print_checklist(
     ):
         print(f"{number}. {item}")
 
+    print("\n" + "=" * 40)
+    print(" LEAVE STATUS")
+    print("=" * 40)
+
+    print(
+        f"Leave Type: "
+        f"{checklist['title']}"
+    )
+
+    print(
+        f"Duration: "
+        f"{leave_days} day(s)"
+    )
+
+    print(
+        "Status: Ready for Submission"
+    )
+
     save_checklist_to_file(
         checklist,
         soldier_name,
