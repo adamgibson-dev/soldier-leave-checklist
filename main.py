@@ -71,6 +71,7 @@ def get_checklist(leave_type):
 def print_checklist(
     checklist,
     soldier_name,
+    unit,
     start_date,
     end_date
 ):
@@ -84,6 +85,7 @@ def print_checklist(
     print("=" * 40)
 
     print(f"Soldier: {soldier_name}")
+    print(f"Unit: {unit}")
     print(f"Start Date: {start_date}")
     print(f"End Date: {end_date}")
     print(f"Total Leave Days: {leave_days}")
@@ -118,17 +120,19 @@ def print_checklist(
     save_checklist_to_file(
         checklist,
         soldier_name,
+        unit,
         start_date,
         end_date,
         leave_days
     )
 
     save_checklist_to_pdf(
-    checklist,
-    soldier_name,
-    start_date,
-    end_date,
-    leave_days
+        checklist,
+        soldier_name,
+        unit,
+        start_date,
+        end_date,
+        leave_days
     )
 
 def calculate_leave_days(start_date, end_date):
@@ -142,53 +146,41 @@ def calculate_leave_days(start_date, end_date):
 def save_checklist_to_file(
     checklist,
     soldier_name,
+    unit,
     start_date,
     end_date,
     leave_days
 ):
     filename = (
-    f"{soldier_name}"
-    "_leave_checklist.txt"
+        f"{soldier_name}"
+        "_leave_checklist.txt"
     )
 
     with open(filename, "w") as file:
-        file.write(
-            f"Soldier: {soldier_name}\n"
-        )
+        file.write(f"Soldier: {soldier_name}\n")
+        file.write(f"Unit: {unit}\n")
+        file.write(f"Start Date: {start_date}\n")
+        file.write(f"End Date: {end_date}\n")
+        file.write(f"Total Leave Days: {leave_days}\n\n")
 
-        file.write(
-            f"Start Date: {start_date}\n"
-        )
-
-        file.write(
-            f"End Date: {end_date}\n"
-        )
-
-        file.write(
-            f"Total Leave Days: {leave_days}\n\n"
-        )
-
-        file.write(
-            f"{checklist['title']}\n"
-        )
-
-        file.write(
-            "-" * len(checklist["title"])
-            + "\n"
-        )
+        file.write(f"{checklist['title']}\n")
+        file.write("-" * len(checklist["title"]) + "\n")
 
         for number, item in enumerate(
             checklist["items"],
             start=1
         ):
-            file.write(
-                f"{number}. {item}\n"
-            )
+            file.write(f"{number}. {item}\n")
 
-    print(
-        f"\nChecklist saved as "
-        f"{filename}"
-    )
+        file.write("\n")
+        file.write("=" * 40 + "\n")
+        file.write("LEAVE STATUS\n")
+        file.write("=" * 40 + "\n")
+        file.write(f"Leave Type: {checklist['title']}\n")
+        file.write(f"Duration: {leave_days} day(s)\n")
+        file.write("Status: Ready for Submission\n")
+
+    print(f"\nText file saved as {filename}")
 
 def get_valid_date(prompt):
     while True:
@@ -240,6 +232,7 @@ def get_leave_dates():
 def save_checklist_to_pdf(
     checklist,
     soldier_name,
+    unit,
     start_date,
     end_date,
     leave_days
@@ -256,14 +249,15 @@ def save_checklist_to_pdf(
 
     pdf.setFont("Helvetica", 12)
     pdf.drawString(72, 720, f"Soldier: {soldier_name}")
-    pdf.drawString(72, 700, f"Start Date: {start_date}")
-    pdf.drawString(72, 680, f"End Date: {end_date}")
-    pdf.drawString(72, 660, f"Total Leave Days: {leave_days}")
+    pdf.drawString(72, 700, f"Unit: {unit}")
+    pdf.drawString(72, 680, f"Start Date: {start_date}")
+    pdf.drawString(72, 660, f"End Date: {end_date}")
+    pdf.drawString(72, 640, f"Total Leave Days: {leave_days}")
 
     pdf.setFont("Helvetica-Bold", 14)
-    pdf.drawString(72, 625, checklist["title"])
+    pdf.drawString(72, 605, checklist["title"])
 
-    y_position = 600
+    y_position = 580
 
     pdf.setFont("Helvetica", 11)
 
@@ -279,25 +273,63 @@ def save_checklist_to_pdf(
 
         y_position -= 20
 
+    y_position -= 20
+
     pdf.setFont("Helvetica-Bold", 12)
-    pdf.drawString(72, y_position - 20, "Status: Ready for Submission")
+    pdf.drawString(72, y_position, "Leave Status")
+
+    y_position -= 20
+
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(
+        72,
+        y_position,
+        f"Leave Type: {checklist['title']}"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Duration: {leave_days} day(s)"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        "Status: Ready for Submission"
+    )
 
     pdf.save()
 
-    print(
-        f"PDF saved as "
-        f"{filename}"
-    )
+    print(f"PDF saved as {filename}")
 
 def main():
     while True:
         print_header()
 
-        soldier_name = input(
-            "\nEnter Soldier name: "
+        rank = input(
+            "\nEnter Soldier rank: "
+        ).upper()
+
+        last_name = input(
+            "Enter Soldier last name: "
+        ).title()
+
+        soldier_name = (
+            f"{rank} {last_name}"
         )
 
-        start_date, end_date = get_leave_dates()
+        unit = input(
+            "Enter unit: "
+        ).upper()
+
+        start_date, end_date = (
+            get_leave_dates()
+        )
 
         display_menu()
 
@@ -307,28 +339,34 @@ def main():
 
         if choice == "5":
             print(
-                f"Goodbye, {soldier_name}."
+                f"Goodbye, "
+                f"{soldier_name}."
             )
             break
 
-        checklist = get_checklist(choice)
+        checklist = get_checklist(
+            choice
+        )
 
         if checklist:
             print_checklist(
                 checklist,
                 soldier_name,
+                unit,
                 start_date,
                 end_date
             )
         else:
             print(
                 "Invalid option. "
-                "Please select a number from 1 to 5."
+                "Please select a "
+                "number from 1 to 5."
             )
 
         run_again = input(
-            "\nWould you like to create "
-            "another checklist? "
+            "\nWould you like "
+            "to create another "
+            "checklist? "
             "(yes/no): "
         ).lower()
 
