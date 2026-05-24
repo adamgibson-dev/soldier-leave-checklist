@@ -150,17 +150,51 @@ def save_checklist_to_file(
         "leave_checklist.txt"
     )
 
+def get_valid_date(prompt):
+    while True:
+        user_input = input(prompt)
+
+        try:
+            datetime.strptime(
+                user_input,
+                "%Y-%m-%d"
+            )
+
+            return user_input
+
+        except ValueError:
+            print(
+                "\nInvalid date format."
+            )
+
+            print(
+                "Please use YYYY-MM-DD.\n"
+            )
+
 def main():
-    soldier_name = input("Enter Soldier name: ")
-    start_date = input("Enter leave start date (YYYY-MM-DD): ")
-    end_date = input("Enter leave end date (YYYY-MM-DD): ")
+    soldier_name = input(
+        "Enter Soldier name: "
+    )
+
+    start_date = get_valid_date(
+        "Enter leave start date (YYYY-MM-DD): "
+    )
+
+    end_date = get_valid_date(
+        "Enter leave end date (YYYY-MM-DD): "
+    )
 
     while True:
         display_menu()
-        choice = input("\nSelect an option: ")
+
+        choice = input(
+            "\nSelect an option: "
+        )
 
         if choice == "5":
-            print(f"Goodbye, {soldier_name}.")
+            print(
+                f"Goodbye, {soldier_name}."
+            )
             break
 
         checklist = get_checklist(choice)
@@ -173,18 +207,10 @@ def main():
                 end_date
             )
         else:
-            print("Invalid option. Please select a number from 1 to 5.")
-
-        if choice == "5":
-            print(f"Goodbye, {soldier_name}.")
-            break
-
-        checklist = get_checklist(choice)
-
-        if checklist:
-            print_checklist(checklist, soldier_name, start_date,end_date)
-        else:
-            print("Invalid option. Please select a number from 1 to 5.")
+            print(
+                "Invalid option. "
+                "Please select a number from 1 to 5."
+            )
 
 if __name__ == "__main__":
     main()
