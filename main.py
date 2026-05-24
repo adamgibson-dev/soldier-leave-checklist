@@ -1,4 +1,6 @@
 from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 def print_header():
     print("\n" + "=" * 40)
@@ -121,6 +123,14 @@ def print_checklist(
         leave_days
     )
 
+    save_checklist_to_pdf(
+    checklist,
+    soldier_name,
+    start_date,
+    end_date,
+    leave_days
+    )
+
 def calculate_leave_days(start_date, end_date):
     start = datetime.strptime(start_date, "%Y-%m-%d")
     end = datetime.strptime(end_date, "%Y-%m-%d")
@@ -226,6 +236,58 @@ def get_leave_dates():
             )
         else:
             return start_date, end_date
+
+def save_checklist_to_pdf(
+    checklist,
+    soldier_name,
+    start_date,
+    end_date,
+    leave_days
+):
+    filename = (
+        f"{soldier_name}"
+        "_leave_checklist.pdf"
+    )
+
+    pdf = canvas.Canvas(filename, pagesize=letter)
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(72, 750, "Soldier Leave Checklist")
+
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(72, 720, f"Soldier: {soldier_name}")
+    pdf.drawString(72, 700, f"Start Date: {start_date}")
+    pdf.drawString(72, 680, f"End Date: {end_date}")
+    pdf.drawString(72, 660, f"Total Leave Days: {leave_days}")
+
+    pdf.setFont("Helvetica-Bold", 14)
+    pdf.drawString(72, 625, checklist["title"])
+
+    y_position = 600
+
+    pdf.setFont("Helvetica", 11)
+
+    for number, item in enumerate(
+        checklist["items"],
+        start=1
+    ):
+        pdf.drawString(
+            72,
+            y_position,
+            f"{number}. {item}"
+        )
+
+        y_position -= 20
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(72, y_position - 20, "Status: Ready for Submission")
+
+    pdf.save()
+
+    print(
+        f"PDF saved as "
+        f"{filename}"
+    )
 
 def main():
     while True:
