@@ -174,18 +174,38 @@ def get_valid_date(prompt):
                 "Please use YYYY-MM-DD.\n"
             )
 
+def get_leave_dates():
+    while True:
+        start_date = get_valid_date(
+            "Enter leave start date (YYYY-MM-DD): "
+        )
+
+        end_date = get_valid_date(
+            "Enter leave end date (YYYY-MM-DD): "
+        )
+
+        leave_days = calculate_leave_days(
+            start_date,
+            end_date
+        )
+
+        if leave_days < 0:
+            print(
+                "\nEnd date cannot be earlier than start date."
+            )
+
+            print(
+                "Please enter the dates again.\n"
+            )
+        else:
+            return start_date, end_date
+
 def main():
     soldier_name = input(
         "Enter Soldier name: "
     )
 
-    start_date = get_valid_date(
-        "Enter leave start date (YYYY-MM-DD): "
-    )
-
-    end_date = get_valid_date(
-        "Enter leave end date (YYYY-MM-DD): "
-    )
+    start_date, end_date = get_leave_dates()
 
     while True:
         display_menu()
@@ -193,7 +213,7 @@ def main():
         choice = input(
             "\nSelect an option: "
         )
-
+    
         if choice == "5":
             print(
                 f"Goodbye, {soldier_name}."

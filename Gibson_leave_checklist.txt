@@ -1,0 +1,13 @@
+Soldier: Gibson
+Start Date: 2020-01-01
+End Date: 2020-01-02
+Total Leave Days: 1
+
+Ordinary Leave Checklist
+------------------------
+1. Submit absence request in IPPS-A
+2. Confirm leave address and contact information
+3. Verify leave dates do not conflict with duty, training, or appointments
+4. Notify first-line leader of planned leave dates
+5. Confirm approval authority and routing chain
+6. Review unit leave policy for any additional requirements
