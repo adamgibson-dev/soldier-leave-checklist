@@ -1,7 +1,13 @@
 from datetime import datetime
 
+def print_header():
+    print("\n" + "=" * 40)
+    print(" SOLDIER LEAVE CHECKLIST GENERATOR")
+    print("=" * 40)
+
 def display_menu():
-    print("\nSoldier Leave Checklist Generator")
+    print("\nSelect Leave Type")
+    print("-" * 17)
     print("1. Ordinary Leave")
     print("2. Emergency Leave")
     print("3. Convalescent Leave")
@@ -71,13 +77,16 @@ def print_checklist(
         end_date
     )
 
-    print(f"\nSoldier: {soldier_name}")
+    print("\n" + "=" * 40)
+    print(" LEAVE REQUEST SUMMARY")
+    print("=" * 40)
+
+    print(f"Soldier: {soldier_name}")
     print(f"Start Date: {start_date}")
     print(f"End Date: {end_date}")
     print(f"Total Leave Days: {leave_days}")
-    print()
 
-    print(f"{checklist['title']}")
+    print("\n" + checklist["title"])
     print("-" * len(checklist["title"]))
 
     for number, item in enumerate(
@@ -202,6 +211,7 @@ def get_leave_dates():
 
 def main():
     while True:
+        print_header()
 
         soldier_name = input(
             "\nEnter Soldier name: "
