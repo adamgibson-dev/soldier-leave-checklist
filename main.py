@@ -58,17 +58,31 @@ def get_checklist(leave_type):
     return checklists.get(leave_type)
 
 
-def print_checklist(checklist, soldier_name):
+def print_checklist(
+    checklist,
+    soldier_name,
+    start_date,
+    end_date
+):
     print(f"\nSoldier: {soldier_name}")
+    print(f"Start Date: {start_date}")
+    print(f"End Date: {end_date}")
+    print()
+
     print(f"{checklist['title']}")
     print("-" * len(checklist["title"]))
 
-    for number, item in enumerate(checklist["items"], start=1):
+    for number, item in enumerate(
+        checklist["items"],
+        start=1
+    ):
         print(f"{number}. {item}")
 
 
 def main():
     soldier_name = input("Enter Soldier name: ")
+    start_date = input("Enter leave start date (YYYY-MM-DD): ")
+    end_date = input("Enter leave end date (YYYY-MM-DD): ")
 
     while True:
         display_menu()
@@ -81,21 +95,25 @@ def main():
         checklist = get_checklist(choice)
 
         if checklist:
-            print_checklist(checklist, soldier_name)
+            print_checklist(
+                checklist,
+                soldier_name,
+                start_date,
+                end_date
+            )
         else:
             print("Invalid option. Please select a number from 1 to 5.")
 
         if choice == "5":
-            print("Goodbye.")
+            print(f"Goodbye, {soldier_name}.")
             break
 
         checklist = get_checklist(choice)
 
         if checklist:
-            print_checklist(checklist,soldier_name)
+            print_checklist(checklist, soldier_name, start_date,end_date)
         else:
             print("Invalid option. Please select a number from 1 to 5.")
-
 
 if __name__ == "__main__":
     main()
