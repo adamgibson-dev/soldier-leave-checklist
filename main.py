@@ -109,7 +109,10 @@ def save_checklist_to_file(
     end_date,
     leave_days
 ):
-    filename = "leave_checklist.txt"
+    filename = (
+    f"{soldier_name}"
+    "_leave_checklist.txt"
+    )
 
     with open(filename, "w") as file:
         file.write(
@@ -146,8 +149,8 @@ def save_checklist_to_file(
             )
 
     print(
-        "\nChecklist saved as "
-        "leave_checklist.txt"
+        f"\nChecklist saved as "
+        f"{filename}"
     )
 
 def get_valid_date(prompt):
