@@ -116,25 +116,25 @@ def get_emergency_contact_info():
     print(" EMERGENCY CONTACT INFORMATION")
     print("=" * 40)
 
-    contact_name = input(
+    contact_name = get_valid_name(
         "Enter emergency contact full name: "
     ).title()
 
-    relationship = input(
+    relationship = get_valid_relationship(
         "Enter relationship to Soldier: "
     ).title()
 
-    phone_number = input(
+    phone_number = get_valid_phone_number(
         "Enter emergency contact phone number: "
     )
 
-    leave_address = input(
+    leave_address = get_valid_address(
         "Enter Soldier leave address: "
     ).title()
 
-    travel_method = input(
-        "Enter travel method (POV, flight, bus, etc.): "
-    ).upper()
+    travel_method = get_valid_travel_method(
+        "Enter travel method (POV, FLIGHT, BUS, TRAIN, OTHER): "
+    )
 
     emergency_contact = {
         "contact_name": contact_name,
@@ -424,6 +424,245 @@ def get_valid_date(prompt):
                 "Please use YYYY-MM-DD.\n"
             )
 
+def get_required_input(prompt):
+    while True:
+        user_input = input(prompt).strip()
+
+        if user_input:
+            return user_input
+
+        print(
+            "\nThis field cannot be blank."
+        )
+
+        print(
+            "Please enter a valid response.\n"
+        )
+
+
+def get_valid_phone_number(prompt):
+    while True:
+        phone_number = input(prompt).strip()
+
+        cleaned_phone_number = (
+            phone_number
+            .replace("-", "")
+            .replace("(", "")
+            .replace(")", "")
+            .replace(" ", "")
+        )
+
+        if (
+            cleaned_phone_number.isdigit()
+            and len(cleaned_phone_number) == 10
+        ):
+            return phone_number
+
+        print(
+            "\nInvalid phone number."
+        )
+
+        print(
+            "Please enter a 10-digit phone number."
+        )
+
+        print(
+            "Example: 907-555-1234\n"
+        )
+
+
+def get_valid_travel_method(prompt):
+    valid_methods = [
+        "POV",
+        "FLIGHT",
+        "BUS",
+        "TRAIN"
+    ]
+
+    while True:
+        travel_method = (
+            input(prompt)
+            .strip()
+            .upper()
+        )
+
+        travel_method = (
+            handle_navigation(
+                travel_method
+            )
+        )
+
+        if travel_method == "BACK":
+            return "BACK"
+
+        if (
+            travel_method
+            in valid_methods
+        ):
+            return travel_method
+
+        print(
+            "\nInvalid travel method."
+        )
+
+        print(
+            "Valid travel methods:"
+        )
+
+        print(
+            "POV, FLIGHT, "
+            "BUS, TRAIN\n"
+        )
+
+def get_valid_name(prompt):
+    while True:
+        name = input(prompt).strip()
+
+        split_name = name.split()
+
+        if (
+            len(split_name) >= 2
+            and all(
+                part.isalpha()
+                for part in split_name
+            )
+        ):
+            return name.title()
+
+        print(
+            "\nInvalid name."
+        )
+
+        print(
+            "Please enter a first "
+            "and last name using "
+            "letters only.\n"
+        )
+
+def get_valid_address(prompt):
+    while True:
+        address = input(prompt).strip()
+
+        if (
+            len(address) >= 8
+            and any(character.isdigit() for character in address)
+            and any(character.isalpha() for character in address)
+        ):
+            return address.title()
+
+        print(
+            "\nInvalid address."
+        )
+
+        print(
+            "Please enter a valid leave address "
+            "with a street number and street name.\n"
+        )
+
+def get_valid_relationship(prompt):
+    valid_relationships = [
+        "MOTHER",
+        "FATHER",
+        "SPOUSE",
+        "HUSBAND",
+        "WIFE",
+        "BROTHER",
+        "SISTER",
+        "GRANDMOTHER",
+        "GRANDFATHER",
+        "AUNT",
+        "UNCLE",
+        "FRIEND",
+        "GUARDIAN",
+        "OTHER"
+    ]
+
+    while True:
+        relationship = (
+            input(prompt)
+            .strip()
+            .upper()
+        )
+
+        if relationship in valid_relationships:
+            return relationship.title()
+
+        print(
+            "\nInvalid relationship."
+        )
+
+        print(
+            "Valid options include:"
+        )
+
+        print(
+            ", ".join(valid_relationships)
+            + "\n"
+        )
+
+    while True:
+        travel_method = input(prompt).strip().upper()
+
+        if travel_method in valid_methods:
+            return travel_method
+
+        print(
+            "\nInvalid travel method."
+        )
+
+        print(
+            "Valid options: POV, FLIGHT, BUS, TRAIN, OTHER\n"
+        )
+
+def get_valid_name_part(prompt):
+    while True:
+        go_back_prompt()
+
+        name = input(prompt).strip()
+
+        name = handle_navigation(
+            name
+        )
+
+        if name.upper() == "BACK":
+            return "BACK"
+
+        if (
+            name.isalpha()
+            and len(name) >= 2
+        ):
+            return name.title()
+
+        print(
+            "\nInvalid name."
+        )
+
+        print(
+            "Please enter letters only, "
+            "at least 2 characters.\n"
+        )
+
+def handle_navigation(user_input):
+    user_input = user_input.strip().upper()
+
+    if user_input == "EXIT":
+        print(
+            "\nExiting program..."
+        )
+        exit()
+
+    return user_input
+
+def go_back_prompt():
+    print(
+        "\nType BACK to return "
+        "to the previous step."
+    )
+
+    print(
+        "Type EXIT to quit.\n"
+    )
+
 def get_leave_dates():
     while True:
         start_date = get_valid_date(
@@ -614,12 +853,31 @@ def main():
             "\nEnter Soldier rank: "
         ).upper()
 
-        last_name = input(
-            "Enter Soldier last name: "
-        ).title()
+        while True:
+            first_name = (
+                get_valid_name_part(
+                    "Enter Soldier first name: "
+                )
+            )
+
+            if first_name == "BACK":
+                continue
+
+            last_name = (
+                get_valid_name_part(
+                    "Enter Soldier last name: "
+                )
+            )
+
+            if last_name == "BACK":
+                continue
+
+            break
 
         soldier_name = (
-            f"{rank} {last_name}"
+            f"{rank} "
+            f"{first_name} "
+            f"{last_name}"
         )
 
         unit = input(
@@ -648,7 +906,9 @@ def main():
         )
 
         if checklist:
-            risk_flags = get_risk_assessment()
+            risk_flags = (
+                get_risk_assessment()
+            )
 
             emergency_contact = (
                 get_emergency_contact_info()
