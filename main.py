@@ -67,13 +67,57 @@ def get_checklist(leave_type):
 
     return checklists.get(leave_type)
 
+def get_risk_assessment():
+    risk_flags = []
+
+    print("\n" + "=" * 40)
+    print(" LEAVE RISK ASSESSMENT")
+    print("=" * 40)
+
+    overseas_travel = input(
+        "Will the Soldier travel outside the United States? (yes/no): "
+    ).lower()
+
+    if overseas_travel == "yes":
+        risk_flags.append("Overseas travel requires additional review")
+
+    emergency_contact = input(
+        "Does the Soldier have a verified emergency contact? (yes/no): "
+    ).lower()
+
+    if emergency_contact != "yes":
+        risk_flags.append("Emergency contact is missing or not verified")
+
+    recall_number = input(
+        "Does the Soldier have a valid recall phone number? (yes/no): "
+    ).lower()
+
+    if recall_number != "yes":
+        risk_flags.append("Recall phone number is missing or invalid")
+
+    training_conflict = input(
+        "Does this leave conflict with duty, training, or appointments? (yes/no): "
+    ).lower()
+
+    if training_conflict == "yes":
+        risk_flags.append("Leave conflicts with duty, training, or appointments")
+
+    mileage_restriction = input(
+        "Does travel exceed local mileage or pass distance limits? (yes/no): "
+    ).lower()
+
+    if mileage_restriction == "yes":
+        risk_flags.append("Travel may exceed mileage or pass distance limits")
+
+    return risk_flags
 
 def print_checklist(
     checklist,
     soldier_name,
     unit,
     start_date,
-    end_date
+    end_date,
+    risk_flags
 ):
     leave_days = calculate_leave_days(
         start_date,
@@ -100,6 +144,19 @@ def print_checklist(
         print(f"{number}. {item}")
 
     print("\n" + "=" * 40)
+    print(" RISK ASSESSMENT")
+    print("=" * 40)
+
+    if risk_flags:
+        for flag in risk_flags:
+            print(f"WARNING: {flag}")
+
+        status = "Requires Leadership Review"
+    else:
+        print("No risk flags identified")
+        status = "Ready for Submission"
+
+    print("\n" + "=" * 40)
     print(" LEAVE STATUS")
     print("=" * 40)
 
@@ -114,7 +171,7 @@ def print_checklist(
     )
 
     print(
-        "Status: Ready for Submission"
+        f"Status: {status}"
     )
 
     save_checklist_to_file(
@@ -123,7 +180,9 @@ def print_checklist(
         unit,
         start_date,
         end_date,
-        leave_days
+        leave_days,
+        risk_flags,
+        status
     )
 
     save_checklist_to_pdf(
@@ -132,7 +191,9 @@ def print_checklist(
         unit,
         start_date,
         end_date,
-        leave_days
+        leave_days,
+        risk_flags,
+        status
     )
 
 def calculate_leave_days(start_date, end_date):
@@ -149,7 +210,9 @@ def save_checklist_to_file(
     unit,
     start_date,
     end_date,
-    leave_days
+    leave_days,
+    risk_flags,
+    status
 ):
     filename = (
         f"{soldier_name}"
@@ -161,26 +224,71 @@ def save_checklist_to_file(
         file.write(f"Unit: {unit}\n")
         file.write(f"Start Date: {start_date}\n")
         file.write(f"End Date: {end_date}\n")
-        file.write(f"Total Leave Days: {leave_days}\n\n")
+        file.write(
+            f"Total Leave Days: "
+            f"{leave_days}\n\n"
+        )
 
-        file.write(f"{checklist['title']}\n")
-        file.write("-" * len(checklist["title"]) + "\n")
+        file.write(
+            f"{checklist['title']}\n"
+        )
+
+        file.write(
+            "-" *
+            len(checklist["title"])
+            + "\n"
+        )
 
         for number, item in enumerate(
             checklist["items"],
             start=1
         ):
-            file.write(f"{number}. {item}\n")
+            file.write(
+                f"{number}. {item}\n"
+            )
 
         file.write("\n")
         file.write("=" * 40 + "\n")
-        file.write("LEAVE STATUS\n")
+        file.write(
+            "RISK ASSESSMENT\n"
+        )
         file.write("=" * 40 + "\n")
-        file.write(f"Leave Type: {checklist['title']}\n")
-        file.write(f"Duration: {leave_days} day(s)\n")
-        file.write("Status: Ready for Submission\n")
 
-    print(f"\nText file saved as {filename}")
+        if risk_flags:
+            for flag in risk_flags:
+                file.write(
+                    f"WARNING: {flag}\n"
+                )
+        else:
+            file.write(
+                "No risk flags identified\n"
+            )
+
+        file.write("\n")
+        file.write("=" * 40 + "\n")
+        file.write(
+            "LEAVE STATUS\n"
+        )
+        file.write("=" * 40 + "\n")
+
+        file.write(
+            f"Leave Type: "
+            f"{checklist['title']}\n"
+        )
+
+        file.write(
+            f"Duration: "
+            f"{leave_days} day(s)\n"
+        )
+
+        file.write(
+            f"Status: {status}\n"
+        )
+
+    print(
+        f"\nText file saved as "
+        f"{filename}"
+    )
 
 def get_valid_date(prompt):
     while True:
@@ -235,7 +343,9 @@ def save_checklist_to_pdf(
     unit,
     start_date,
     end_date,
-    leave_days
+    leave_days,
+    risk_flags,
+    status
 ):
     filename = (
         f"{soldier_name}"
@@ -276,11 +386,39 @@ def save_checklist_to_pdf(
     y_position -= 20
 
     pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(72, y_position, "Risk Assessment")
+
+    y_position -= 20
+
+    pdf.setFont("Helvetica", 11)
+
+    if risk_flags:
+        for flag in risk_flags:
+            pdf.drawString(
+                72,
+                y_position,
+                f"WARNING: {flag}"
+            )
+
+            y_position -= 20
+    else:
+        pdf.drawString(
+            72,
+            y_position,
+            "No risk flags identified"
+        )
+
+        y_position -= 20
+
+    y_position -= 20
+
+    pdf.setFont("Helvetica-Bold", 12)
     pdf.drawString(72, y_position, "Leave Status")
 
     y_position -= 20
 
     pdf.setFont("Helvetica", 11)
+
     pdf.drawString(
         72,
         y_position,
@@ -300,7 +438,7 @@ def save_checklist_to_pdf(
     pdf.drawString(
         72,
         y_position,
-        "Status: Ready for Submission"
+        f"Status: {status}"
     )
 
     pdf.save()
@@ -349,12 +487,16 @@ def main():
         )
 
         if checklist:
+            risk_flags = get_risk_assessment()
+
+        if checklist:
             print_checklist(
                 checklist,
                 soldier_name,
                 unit,
                 start_date,
-                end_date
+                end_date,
+                risk_flags
             )
         else:
             print(
