@@ -74,40 +74,65 @@ def get_risk_assessment():
     print(" LEAVE RISK ASSESSMENT")
     print("=" * 40)
 
-    overseas_travel = input(
-        "Will the Soldier travel outside the United States? (yes/no): "
-    ).lower()
+    overseas_travel = get_yes_or_no(
+        "Will the Soldier travel outside the United States? (YES/NO): "
+    )
 
-    if overseas_travel == "yes":
-        risk_flags.append("Overseas travel requires additional review")
+    if overseas_travel == "BACK":
+        return "BACK"
 
-    emergency_contact = input(
-        "Does the Soldier have a verified emergency contact? (yes/no): "
-    ).lower()
+    if overseas_travel == "YES":
+        risk_flags.append(
+            "Overseas travel requires additional review"
+        )
 
-    if emergency_contact != "yes":
-        risk_flags.append("Emergency contact is missing or not verified")
+    emergency_contact = get_yes_or_no(
+        "Does the Soldier have a verified emergency contact? (YES/NO): "
+    )
 
-    recall_number = input(
-        "Does the Soldier have a valid recall phone number? (yes/no): "
-    ).lower()
+    if emergency_contact == "BACK":
+        return "BACK"
 
-    if recall_number != "yes":
-        risk_flags.append("Recall phone number is missing or invalid")
+    if emergency_contact == "NO":
+        risk_flags.append(
+            "Emergency contact is missing or not verified"
+        )
 
-    training_conflict = input(
-        "Does this leave conflict with duty, training, or appointments? (yes/no): "
-    ).lower()
+    recall_number = get_yes_or_no(
+        "Does the Soldier have a valid recall phone number? (YES/NO): "
+    )
 
-    if training_conflict == "yes":
-        risk_flags.append("Leave conflicts with duty, training, or appointments")
+    if recall_number == "BACK":
+        return "BACK"
 
-    mileage_restriction = input(
-        "Does travel exceed local mileage or pass distance limits? (yes/no): "
-    ).lower()
+    if recall_number == "NO":
+        risk_flags.append(
+            "Recall phone number is missing or invalid"
+        )
 
-    if mileage_restriction == "yes":
-        risk_flags.append("Travel may exceed mileage or pass distance limits")
+    training_conflict = get_yes_or_no(
+        "Does this leave conflict with duty, training, or appointments? (YES/NO): "
+    )
+
+    if training_conflict == "BACK":
+        return "BACK"
+
+    if training_conflict == "YES":
+        risk_flags.append(
+            "Leave conflicts with duty, training, or appointments"
+        )
+
+    mileage_restriction = get_yes_or_no(
+        "Does travel exceed local mileage or pass distance limits? (YES/NO): "
+    )
+
+    if mileage_restriction == "BACK":
+        return "BACK"
+
+    if mileage_restriction == "YES":
+        risk_flags.append(
+            "Travel may exceed mileage or pass distance limits"
+        )
 
     return risk_flags
 
@@ -514,6 +539,57 @@ def get_valid_travel_method(prompt):
             "BUS, TRAIN\n"
         )
 
+def get_valid_rank(prompt):
+    valid_ranks = [
+        "PVT",
+        "PV2",
+        "PFC",
+        "SPC",
+        "CPL",
+        "SGT",
+        "SSG",
+        "SFC",
+        "MSG",
+        "1SG",
+        "SGM",
+        "CSM",
+        "2LT",
+        "1LT",
+        "CPT",
+        "MAJ",
+        "LTC",
+        "COL",
+        "CW2",
+        "CW3",
+        "CW4",
+        "CW5"
+    ]
+
+    while True:
+        rank = input(prompt).strip().upper()
+
+        rank = handle_navigation(
+            rank
+        )
+
+        if rank == "BACK":
+            return "BACK"
+
+        if rank in valid_ranks:
+            return rank
+
+        print(
+            "\nInvalid rank."
+        )
+
+        print(
+            "Please enter a valid Army rank."
+        )
+
+        print(
+            "Example: SPC, SGT, SSG, 2LT, CPT\n"
+        )
+
 def get_valid_name(prompt):
     while True:
         name = input(prompt).strip()
@@ -557,6 +633,28 @@ def get_valid_address(prompt):
         print(
             "Please enter a valid leave address "
             "with a street number and street name.\n"
+        )
+
+def get_yes_or_no(prompt):
+    while True:
+        answer = input(prompt).strip().upper()
+
+        answer = handle_navigation(
+            answer
+        )
+
+        if answer == "BACK":
+            return "BACK"
+
+        if answer in ["YES", "NO"]:
+            return answer
+
+        print(
+            "\nInvalid response."
+        )
+
+        print(
+            "Please enter YES or NO.\n"
         )
 
 def get_valid_relationship(prompt):
@@ -849,9 +947,12 @@ def main():
     while True:
         print_header()
 
-        rank = input(
+        rank = get_valid_rank(
             "\nEnter Soldier rank: "
-        ).upper()
+        )
+
+        if rank == "BACK":
+            continue
 
         while True:
             first_name = (
@@ -910,9 +1011,18 @@ def main():
                 get_risk_assessment()
             )
 
+            if risk_flags == "BACK":
+                continue
+
             emergency_contact = (
                 get_emergency_contact_info()
             )
+
+            if (
+                emergency_contact
+                == "BACK"
+            ):
+                continue
 
             print_checklist(
                 checklist,
@@ -930,14 +1040,16 @@ def main():
                 "number from 1 to 5."
             )
 
-        run_again = input(
-            "\nWould you like "
-            "to create another "
-            "checklist? "
-            "(yes/no): "
-        ).lower()
+        run_again = (
+            get_yes_or_no(
+                "\nWould you like "
+                "to create another "
+                "checklist? "
+                "(YES/NO): "
+            )
+        )
 
-        if run_again != "yes":
+        if run_again == "NO":
             print(
                 f"\nGoodbye, "
                 f"{soldier_name}."
