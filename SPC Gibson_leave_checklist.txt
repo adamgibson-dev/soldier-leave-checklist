@@ -14,6 +14,15 @@ Ordinary Leave Checklist
 6. Review unit leave policy for any additional requirements
 
 ========================================
+EMERGENCY CONTACT
+========================================
+Contact Name: Lisa Gibson
+Relationship: Mother
+Phone Number: 111-1111
+Leave Address: 123 Pizza City
+Travel Method: FLIGHT
+
+========================================
 RISK ASSESSMENT
 ========================================
 No risk flags identified

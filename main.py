@@ -111,13 +111,50 @@ def get_risk_assessment():
 
     return risk_flags
 
+def get_emergency_contact_info():
+    print("\n" + "=" * 40)
+    print(" EMERGENCY CONTACT INFORMATION")
+    print("=" * 40)
+
+    contact_name = input(
+        "Enter emergency contact full name: "
+    ).title()
+
+    relationship = input(
+        "Enter relationship to Soldier: "
+    ).title()
+
+    phone_number = input(
+        "Enter emergency contact phone number: "
+    )
+
+    leave_address = input(
+        "Enter Soldier leave address: "
+    ).title()
+
+    travel_method = input(
+        "Enter travel method (POV, flight, bus, etc.): "
+    ).upper()
+
+    emergency_contact = {
+        "contact_name": contact_name,
+        "relationship": relationship,
+        "phone_number": phone_number,
+        "leave_address": leave_address,
+        "travel_method": travel_method
+    }
+
+    return emergency_contact
+
+
 def print_checklist(
     checklist,
     soldier_name,
     unit,
     start_date,
     end_date,
-    risk_flags
+    risk_flags,
+    emergency_contact
 ):
     leave_days = calculate_leave_days(
         start_date,
@@ -142,6 +179,35 @@ def print_checklist(
         start=1
     ):
         print(f"{number}. {item}")
+
+    print("\n" + "=" * 40)
+    print(" EMERGENCY CONTACT")
+    print("=" * 40)
+
+    print(
+        f"Contact Name: "
+        f"{emergency_contact['contact_name']}"
+    )
+
+    print(
+        f"Relationship: "
+        f"{emergency_contact['relationship']}"
+    )
+
+    print(
+        f"Phone Number: "
+        f"{emergency_contact['phone_number']}"
+    )
+
+    print(
+        f"Leave Address: "
+        f"{emergency_contact['leave_address']}"
+    )
+
+    print(
+        f"Travel Method: "
+        f"{emergency_contact['travel_method']}"
+    )
 
     print("\n" + "=" * 40)
     print(" RISK ASSESSMENT")
@@ -182,7 +248,8 @@ def print_checklist(
         end_date,
         leave_days,
         risk_flags,
-        status
+        status,
+        emergency_contact
     )
 
     save_checklist_to_pdf(
@@ -193,7 +260,8 @@ def print_checklist(
         end_date,
         leave_days,
         risk_flags,
-        status
+        status,
+        emergency_contact
     )
 
 def calculate_leave_days(start_date, end_date):
@@ -212,7 +280,8 @@ def save_checklist_to_file(
     end_date,
     leave_days,
     risk_flags,
-    status
+    status,
+    emergency_contact
 ):
     filename = (
         f"{soldier_name}"
@@ -220,10 +289,22 @@ def save_checklist_to_file(
     )
 
     with open(filename, "w") as file:
-        file.write(f"Soldier: {soldier_name}\n")
-        file.write(f"Unit: {unit}\n")
-        file.write(f"Start Date: {start_date}\n")
-        file.write(f"End Date: {end_date}\n")
+        file.write(
+            f"Soldier: {soldier_name}\n"
+        )
+
+        file.write(
+            f"Unit: {unit}\n"
+        )
+
+        file.write(
+            f"Start Date: {start_date}\n"
+        )
+
+        file.write(
+            f"End Date: {end_date}\n"
+        )
+
         file.write(
             f"Total Leave Days: "
             f"{leave_days}\n\n"
@@ -246,6 +327,38 @@ def save_checklist_to_file(
             file.write(
                 f"{number}. {item}\n"
             )
+
+        file.write("\n")
+        file.write("=" * 40 + "\n")
+        file.write(
+            "EMERGENCY CONTACT\n"
+        )
+        file.write("=" * 40 + "\n")
+
+        file.write(
+            f"Contact Name: "
+            f"{emergency_contact['contact_name']}\n"
+        )
+
+        file.write(
+            f"Relationship: "
+            f"{emergency_contact['relationship']}\n"
+        )
+
+        file.write(
+            f"Phone Number: "
+            f"{emergency_contact['phone_number']}\n"
+        )
+
+        file.write(
+            f"Leave Address: "
+            f"{emergency_contact['leave_address']}\n"
+        )
+
+        file.write(
+            f"Travel Method: "
+            f"{emergency_contact['travel_method']}\n"
+        )
 
         file.write("\n")
         file.write("=" * 40 + "\n")
@@ -345,7 +458,8 @@ def save_checklist_to_pdf(
     end_date,
     leave_days,
     risk_flags,
-    status
+    status,
+    emergency_contact
 ):
     filename = (
         f"{soldier_name}"
@@ -384,6 +498,53 @@ def save_checklist_to_pdf(
         y_position -= 20
 
     y_position -= 20
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(72, y_position, "Emergency Contact")
+
+    y_position -= 20
+
+    pdf.setFont("Helvetica", 11)
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Contact Name: {emergency_contact['contact_name']}"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Relationship: {emergency_contact['relationship']}"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Phone Number: {emergency_contact['phone_number']}"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Leave Address: {emergency_contact['leave_address']}"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Travel Method: {emergency_contact['travel_method']}"
+    )
+
+    y_position -= 30
 
     pdf.setFont("Helvetica-Bold", 12)
     pdf.drawString(72, y_position, "Risk Assessment")
@@ -489,14 +650,18 @@ def main():
         if checklist:
             risk_flags = get_risk_assessment()
 
-        if checklist:
+            emergency_contact = (
+                get_emergency_contact_info()
+            )
+
             print_checklist(
                 checklist,
                 soldier_name,
                 unit,
                 start_date,
                 end_date,
-                risk_flags
+                risk_flags,
+                emergency_contact
             )
         else:
             print(
