@@ -1,5 +1,6 @@
 Soldier: SPC Adam Gibson
-Unit: 1ST-511 IN (2G)
+Unit: 1ST SQUADRON, 40TH CAVALRY REGIMENT (1-40 CAV)
+Company: HHC
 Start Date: 2020-01-01
 End Date: 2020-01-02
 Total Leave Days: 1

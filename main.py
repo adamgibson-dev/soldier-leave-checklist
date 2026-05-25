@@ -176,6 +176,7 @@ def print_checklist(
     checklist,
     soldier_name,
     unit,
+    company,
     start_date,
     end_date,
     risk_flags,
@@ -192,6 +193,7 @@ def print_checklist(
 
     print(f"Soldier: {soldier_name}")
     print(f"Unit: {unit}")
+    print(f"Company: {company}")
     print(f"Start Date: {start_date}")
     print(f"End Date: {end_date}")
     print(f"Total Leave Days: {leave_days}")
@@ -269,6 +271,7 @@ def print_checklist(
         checklist,
         soldier_name,
         unit,
+        company,
         start_date,
         end_date,
         leave_days,
@@ -281,6 +284,7 @@ def print_checklist(
         checklist,
         soldier_name,
         unit,
+        company,
         start_date,
         end_date,
         leave_days,
@@ -301,6 +305,7 @@ def save_checklist_to_file(
     checklist,
     soldier_name,
     unit,
+    company,
     start_date,
     end_date,
     leave_days,
@@ -320,6 +325,10 @@ def save_checklist_to_file(
 
         file.write(
             f"Unit: {unit}\n"
+        )
+
+        file.write(
+            f"Company: {company}\n"
         )
 
         file.write(
@@ -430,7 +439,16 @@ def save_checklist_to_file(
 
 def get_valid_date(prompt):
     while True:
-        user_input = input(prompt)
+        show_navigation_options()
+
+        user_input = input(prompt).strip()
+
+        user_input = handle_navigation(
+            user_input
+        )
+
+        if user_input == "BACK":
+            return "BACK"
 
         try:
             datetime.strptime(
@@ -441,13 +459,42 @@ def get_valid_date(prompt):
             return user_input
 
         except ValueError:
-            print(
-                "\nInvalid date format."
-            )
+            print("\nInvalid date format.")
+            print("Please use YYYY-MM-DD.\n")
 
-            print(
-                "Please use YYYY-MM-DD.\n"
+def get_valid_name(prompt):
+    while True:
+        show_navigation_options()
+
+        name = input(prompt).strip()
+
+        name = handle_navigation(
+            name
+        )
+
+        if name == "BACK":
+            return "BACK"
+
+        split_name = name.split()
+
+        if (
+            len(split_name) >= 2
+            and all(
+                part.replace(
+                    "-", ""
+                ).replace(
+                    "'", ""
+                ).isalpha()
+                for part in split_name
             )
+        ):
+            return name.title()
+
+        print("\nInvalid name.")
+        print(
+            "Please enter a first "
+            "and last name.\n"
+        )
 
 def get_required_input(prompt):
     while True:
@@ -541,31 +588,16 @@ def get_valid_travel_method(prompt):
 
 def get_valid_rank(prompt):
     valid_ranks = [
-        "PVT",
-        "PV2",
-        "PFC",
-        "SPC",
-        "CPL",
-        "SGT",
-        "SSG",
-        "SFC",
-        "MSG",
-        "1SG",
-        "SGM",
-        "CSM",
-        "2LT",
-        "1LT",
-        "CPT",
-        "MAJ",
-        "LTC",
-        "COL",
-        "CW2",
-        "CW3",
-        "CW4",
-        "CW5"
+        "PVT", "PV2", "PFC", "SPC", "CPL",
+        "SGT", "SSG", "SFC", "MSG", "1SG",
+        "SGM", "CSM", "2LT", "1LT", "CPT",
+        "MAJ", "LTC", "COL", "CW2", "CW3",
+        "CW4", "CW5"
     ]
 
     while True:
+        show_navigation_options()
+
         rank = input(prompt).strip().upper()
 
         rank = handle_navigation(
@@ -578,42 +610,85 @@ def get_valid_rank(prompt):
         if rank in valid_ranks:
             return rank
 
-        print(
-            "\nInvalid rank."
-        )
+        print("\nInvalid rank.")
+        print("Please enter a valid Army rank.")
+        print("Example: SPC, SGT, SSG, 2LT, CPT\n")
 
-        print(
-            "Please enter a valid Army rank."
-        )
-
-        print(
-            "Example: SPC, SGT, SSG, 2LT, CPT\n"
-        )
-
-def get_valid_name(prompt):
+def get_valid_name_part(prompt):
     while True:
+        show_navigation_options()
+
         name = input(prompt).strip()
 
-        split_name = name.split()
+        name = handle_navigation(
+            name
+        )
+
+        if name == "BACK":
+            return "BACK"
 
         if (
-            len(split_name) >= 2
-            and all(
-                part.isalpha()
-                for part in split_name
-            )
+            name.isalpha()
+            and len(name) >= 2
         ):
             return name.title()
 
+        print("\nInvalid name.")
         print(
-            "\nInvalid name."
+            "Please enter letters only, "
+            "at least 2 characters.\n"
         )
 
-        print(
-            "Please enter a first "
-            "and last name using "
-            "letters only.\n"
+def get_valid_unit(prompt):
+    while True:
+        show_navigation_options()
+
+        unit = input(prompt).strip()
+
+        unit = handle_navigation(
+            unit
         )
+
+        if unit == "BACK":
+            return "BACK"
+
+        if len(unit) >= 2:
+            return unit.upper()
+
+        print("\nInvalid unit.")
+        print("Unit cannot be blank.\n")
+
+def get_valid_company(prompt):
+    valid_companies = [
+        "HHC",
+        "A CO",
+        "B CO",
+        "C CO",
+        "D CO",
+        "E CO",
+        "F CO",
+        "S6",
+        "BN STAFF"
+    ]
+
+    while True:
+        show_navigation_options()
+
+        company = input(prompt).strip().upper()
+
+        company = handle_navigation(
+            company
+        )
+
+        if company == "BACK":
+            return "BACK"
+
+        if company in valid_companies:
+            return company
+
+        print("\nInvalid company.")
+        print("Valid examples:")
+        print(", ".join(valid_companies) + "\n")
 
 def get_valid_address(prompt):
     while True:
@@ -637,6 +712,8 @@ def get_valid_address(prompt):
 
 def get_yes_or_no(prompt):
     while True:
+        show_navigation_options()
+
         answer = input(prompt).strip().upper()
 
         answer = handle_navigation(
@@ -649,13 +726,126 @@ def get_yes_or_no(prompt):
         if answer in ["YES", "NO"]:
             return answer
 
-        print(
-            "\nInvalid response."
+        print("\nInvalid response.")
+        print("Please enter YES or NO.\n")
+
+def handle_navigation(user_input):
+    user_input = user_input.strip()
+
+    if user_input.upper() == "EXIT":
+        print("\nExiting program...")
+        exit()
+
+    if user_input.upper() == "BACK":
+        return "BACK"
+
+    return user_input
+
+
+def show_navigation_options():
+    print("\nType BACK to return to the previous step.")
+    print("Type EXIT to quit.\n")
+
+
+def get_required_input(prompt):
+    while True:
+        show_navigation_options()
+
+        user_input = input(prompt).strip()
+
+        user_input = handle_navigation(
+            user_input
         )
 
-        print(
-            "Please enter YES or NO.\n"
+        if user_input == "BACK":
+            return "BACK"
+
+        if user_input:
+            return user_input
+
+        print("\nThis field cannot be blank.")
+        print("Please enter a valid response.\n")
+
+def get_valid_unit(prompt):
+    valid_units = [
+        "1ST BATTALION, 501ST INFANTRY REGIMENT (1-501 INF)",
+        "3RD BATTALION, 509TH INFANTRY REGIMENT (3-509 INF)",
+        "1ST SQUADRON, 40TH CAVALRY REGIMENT (1-40 CAV)",
+        "2ND BATTALION, 377TH FIELD ARTILLERY REGIMENT (2-377 PFAR)",
+        "6TH BRIGADE ENGINEER BATTALION (6TH BEB)",
+        "725TH BRIGADE SUPPORT BATTALION (725TH BSB)"
+    ]
+
+    while True:
+        show_navigation_options()
+
+        unit = input(prompt).strip()
+
+        unit = handle_navigation(
+            unit
         )
+
+        if unit == "BACK":
+            return "BACK"
+
+        unit_upper = unit.upper()
+
+        if unit_upper in valid_units:
+            return unit_upper
+
+        print("\nInvalid unit.")
+        print("Valid examples:")
+
+        for valid_unit in valid_units:
+            print(f"- {valid_unit}")
+
+        print()
+
+    while True:
+        show_navigation_options()
+
+        unit = input(prompt).strip().upper()
+
+        unit = handle_navigation(
+            unit
+        )
+
+        if unit == "BACK":
+            return "BACK"
+
+        if unit in valid_units:
+            return unit
+
+        print("\nInvalid unit.")
+        print("Valid examples:")
+        print(", ".join(valid_units) + "\n")
+
+def get_valid_menu_choice(prompt):
+    valid_choices = [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+    ]
+
+    while True:
+        show_navigation_options()
+
+        choice = input(prompt).strip()
+
+        choice = handle_navigation(
+            choice
+        )
+
+        if choice == "BACK":
+            return "BACK"
+
+        if choice in valid_choices:
+            return choice
+
+        print("\nInvalid menu option.")
+        print("Please select a number from 1 to 5.\n")
 
 def get_valid_relationship(prompt):
     valid_relationships = [
@@ -767,9 +957,15 @@ def get_leave_dates():
             "Enter leave start date (YYYY-MM-DD): "
         )
 
+        if start_date == "BACK":
+            return "BACK", "BACK"
+
         end_date = get_valid_date(
             "Enter leave end date (YYYY-MM-DD): "
         )
+
+        if end_date == "BACK":
+            continue
 
         leave_days = calculate_leave_days(
             start_date,
@@ -791,6 +987,7 @@ def save_checklist_to_pdf(
     checklist,
     soldier_name,
     unit,
+    company,
     start_date,
     end_date,
     leave_days,
@@ -811,14 +1008,15 @@ def save_checklist_to_pdf(
     pdf.setFont("Helvetica", 12)
     pdf.drawString(72, 720, f"Soldier: {soldier_name}")
     pdf.drawString(72, 700, f"Unit: {unit}")
-    pdf.drawString(72, 680, f"Start Date: {start_date}")
-    pdf.drawString(72, 660, f"End Date: {end_date}")
-    pdf.drawString(72, 640, f"Total Leave Days: {leave_days}")
+    pdf.drawString(72, 680, f"Company: {company}")
+    pdf.drawString(72, 660, f"Start Date: {start_date}")
+    pdf.drawString(72, 640, f"End Date: {end_date}")
+    pdf.drawString(72, 620, f"Total Leave Days: {leave_days}")
 
     pdf.setFont("Helvetica-Bold", 14)
-    pdf.drawString(72, 605, checklist["title"])
+    pdf.drawString(72, 585, checklist["title"])
 
-    y_position = 580
+    y_position = 560
 
     pdf.setFont("Helvetica", 11)
 
@@ -947,114 +1145,182 @@ def main():
     while True:
         print_header()
 
-        rank = get_valid_rank(
-            "\nEnter Soldier rank: "
-        )
+        step = "rank"
 
-        if rank == "BACK":
-            continue
+        rank = ""
+        first_name = ""
+        last_name = ""
+        soldier_name = ""
+        unit = ""
+        company = ""
+        start_date = ""
+        end_date = ""
+        choice = ""
+        checklist = None
+        risk_flags = []
+        emergency_contact = {}
 
         while True:
-            first_name = (
-                get_valid_name_part(
+            if step == "rank":
+                rank = get_valid_rank(
+                    "\nEnter Soldier rank: "
+                )
+
+                if rank == "BACK":
+                    continue
+
+                step = "first_name"
+
+            elif step == "first_name":
+                first_name = get_valid_name_part(
                     "Enter Soldier first name: "
                 )
-            )
 
-            if first_name == "BACK":
-                continue
+                if first_name == "BACK":
+                    step = "rank"
+                else:
+                    step = "last_name"
 
-            last_name = (
-                get_valid_name_part(
+            elif step == "last_name":
+                last_name = get_valid_name_part(
                     "Enter Soldier last name: "
                 )
-            )
 
-            if last_name == "BACK":
-                continue
+                if last_name == "BACK":
+                    step = "first_name"
+                else:
+                    soldier_name = (
+                        f"{rank} "
+                        f"{first_name} "
+                        f"{last_name}"
+                    )
 
-            break
+                    step = "unit"
 
-        soldier_name = (
-            f"{rank} "
-            f"{first_name} "
-            f"{last_name}"
-        )
+            elif step == "unit":
+                unit = get_valid_unit(
+                    "Enter unit: "
+                )
 
-        unit = input(
-            "Enter unit: "
-        ).upper()
+                if unit == "BACK":
+                    step = "last_name"
+                else:
+                    step = "company"
 
-        start_date, end_date = (
-            get_leave_dates()
-        )
+            elif step == "company":
+                company = get_valid_company(
+                    "Enter company: "
+                )
 
-        display_menu()
+                if company == "BACK":
+                    step = "unit"
+                else:
+                    step = "dates"
 
-        choice = input(
-            "\nSelect an option: "
-        )
+            elif step == "dates":
+                start_date, end_date = (
+                    get_leave_dates()
+                )
 
-        if choice == "5":
-            print(
-                f"Goodbye, "
-                f"{soldier_name}."
-            )
-            break
+                if (
+                    start_date == "BACK"
+                    or end_date == "BACK"
+                ):
+                    step = "company"
+                else:
+                    step = "leave_type"
 
-        checklist = get_checklist(
-            choice
-        )
+            elif step == "leave_type":
+                display_menu()
 
-        if checklist:
-            risk_flags = (
-                get_risk_assessment()
-            )
+                choice = (
+                    get_valid_menu_choice(
+                        "\nSelect an option: "
+                    )
+                )
 
-            if risk_flags == "BACK":
-                continue
+                if choice == "BACK":
+                    step = "dates"
 
-            emergency_contact = (
-                get_emergency_contact_info()
-            )
+                elif choice == "5":
+                    print(
+                        f"Goodbye, "
+                        f"{soldier_name}."
+                    )
+                    return
 
-            if (
-                emergency_contact
-                == "BACK"
-            ):
-                continue
+                else:
+                    checklist = (
+                        get_checklist(
+                            choice
+                        )
+                    )
 
-            print_checklist(
-                checklist,
-                soldier_name,
-                unit,
-                start_date,
-                end_date,
-                risk_flags,
-                emergency_contact
-            )
-        else:
-            print(
-                "Invalid option. "
-                "Please select a "
-                "number from 1 to 5."
-            )
+                    step = "risk"
 
-        run_again = (
-            get_yes_or_no(
-                "\nWould you like "
-                "to create another "
-                "checklist? "
-                "(YES/NO): "
-            )
-        )
+            elif step == "risk":
+                risk_flags = (
+                    get_risk_assessment()
+                )
 
-        if run_again == "NO":
-            print(
-                f"\nGoodbye, "
-                f"{soldier_name}."
-            )
-            break
+                if risk_flags == "BACK":
+                    step = "leave_type"
+                else:
+                    step = (
+                        "emergency_contact"
+                    )
+
+            elif step == "emergency_contact":
+                emergency_contact = (
+                    get_emergency_contact_info()
+                )
+
+                if (
+                    emergency_contact
+                    == "BACK"
+                ):
+                    step = "risk"
+                else:
+                    step = "print"
+
+            elif step == "print":
+                print_checklist(
+                    checklist,
+                    soldier_name,
+                    unit,
+                    company,
+                    start_date,
+                    end_date,
+                    risk_flags,
+                    emergency_contact
+                )
+
+                step = "run_again"
+
+            elif step == "run_again":
+                run_again = (
+                    get_yes_or_no(
+                        "\nWould you like "
+                        "to create another "
+                        "checklist? "
+                        "(YES/NO): "
+                    )
+                )
+
+                if run_again == "BACK":
+                    step = (
+                        "emergency_contact"
+                    )
+
+                elif run_again == "YES":
+                    break
+
+                elif run_again == "NO":
+                    print(
+                        f"\nGoodbye, "
+                        f"{soldier_name}."
+                    )
+                    return
 
 if __name__ == "__main__":
     main()
