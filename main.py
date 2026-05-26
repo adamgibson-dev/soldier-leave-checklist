@@ -143,23 +143,39 @@ def get_emergency_contact_info():
 
     contact_name = get_valid_name(
         "Enter emergency contact full name: "
-    ).title()
+    )
+
+    if contact_name == "BACK":
+        return "BACK"
 
     relationship = get_valid_relationship(
         "Enter relationship to Soldier: "
-    ).title()
+    )
+
+    if relationship == "BACK":
+        return "BACK"
 
     phone_number = get_valid_phone_number(
         "Enter emergency contact phone number: "
     )
 
+    if phone_number == "BACK":
+        return "BACK"
+
     leave_address = get_valid_address(
         "Enter Soldier leave address: "
-    ).title()
+    )
+
+    if leave_address == "BACK":
+        return "BACK"
 
     travel_method = get_valid_travel_method(
-        "Enter travel method (POV, FLIGHT, BUS, TRAIN, OTHER): "
+        "Enter travel method "
+        "(POV, FLIGHT, BUS, TRAIN): "
     )
+
+    if travel_method == "BACK":
+        return "BACK"
 
     emergency_contact = {
         "contact_name": contact_name,
@@ -317,6 +333,85 @@ def get_recall_risk_warning(
 
     return recall_warnings
 
+def get_travel_category(
+    travel_method,
+    leave_address
+):
+    leave_address = (
+        leave_address.upper()
+    )
+
+    alaska_locations = [
+        "ANCHORAGE",
+        "JBER",
+        "EAGLE RIVER",
+        "PALMER",
+        "WASILLA",
+        "FAIRBANKS"
+    ]
+
+    continental_us = [
+        "TEXAS",
+        "FLORIDA",
+        "CALIFORNIA",
+        "NEW YORK",
+        "WASHINGTON",
+        "OREGON",
+        "NEVADA",
+        "ARIZONA",
+        "COLORADO"
+    ]
+
+    overseas_locations = [
+        "GERMANY",
+        "JAPAN",
+        "KOREA",
+        "ITALY",
+        "POLAND",
+        "OVERSEAS"
+    ]
+
+    if any(
+        location in leave_address
+        for location
+        in alaska_locations
+    ):
+        return (
+            "LOCAL AREA",
+            "LOW"
+        )
+
+    if any(
+        location in leave_address
+        for location
+        in continental_us
+    ):
+        return (
+            "EXTENDED DISTANCE",
+            "HIGH"
+        )
+
+    if any(
+        location in leave_address
+        for location
+        in overseas_locations
+    ):
+        return (
+            "OVERSEAS",
+            "HIGH"
+        )
+
+    if travel_method == "POV":
+        return (
+            "REGIONAL",
+            "MEDIUM"
+        )
+
+    return (
+        "UNKNOWN",
+        "MEDIUM"
+    )
+
 def print_checklist(
     checklist,
     soldier_name,
@@ -362,9 +457,26 @@ def print_checklist(
         end_date
     )
 
-    recall_warnings = get_recall_risk_warning(
-        emergency_contact["travel_method"],
-        emergency_contact["leave_address"]
+    recall_warnings = (
+        get_recall_risk_warning(
+            emergency_contact[
+                "travel_method"
+            ],
+            emergency_contact[
+                "leave_address"
+            ]
+        )
+    )
+
+    travel_category, recall_risk = (
+        get_travel_category(
+            emergency_contact[
+                "travel_method"
+            ],
+            emergency_contact[
+                "leave_address"
+            ]
+        )
     )
 
     policy_warnings.extend(
@@ -426,6 +538,16 @@ def print_checklist(
     print(
         f"Travel Method: "
         f"{emergency_contact['travel_method']}"
+    )
+
+    print(
+        f"Travel Category: "
+        f"{travel_category}"
+    )
+
+    print(
+        f"Recall Risk: "
+        f"{recall_risk}"
     )
 
     print("\n" + "=" * 40)
@@ -909,22 +1031,43 @@ def get_valid_company(prompt):
 
 def get_valid_address(prompt):
     while True:
+        show_navigation_options()
+
         address = input(prompt).strip()
+
+        address = handle_navigation(
+            address
+        )
+
+        if address == "BACK":
+            return "BACK"
 
         if (
             len(address) >= 8
-            and any(character.isdigit() for character in address)
-            and any(character.isalpha() for character in address)
+            and any(
+                character.isdigit()
+                for character in address
+            )
+            and any(
+                character.isalpha()
+                for character in address
+            )
         ):
             return address.title()
 
+        print("\nInvalid address.")
         print(
-            "\nInvalid address."
+            "Please enter a valid "
+            "leave address.\n"
         )
 
         print(
-            "Please enter a valid leave address "
-            "with a street number and street name.\n"
+            "Example:"
+        )
+
+        print(
+            "123 Main St, "
+            "Orlando, Florida\n"
         )
 
 def get_yes_or_no(prompt):
