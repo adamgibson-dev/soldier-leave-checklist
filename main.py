@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 
@@ -171,6 +171,89 @@ def get_emergency_contact_info():
 
     return emergency_contact
 
+def get_dates_between(start_date, end_date):
+    start = datetime.strptime(
+        start_date,
+        "%Y-%m-%d"
+    )
+
+    end = datetime.strptime(
+        end_date,
+        "%Y-%m-%d"
+    )
+
+    dates = []
+
+    current_date = start
+
+    while current_date <= end:
+        dates.append(current_date)
+        current_date = current_date.replace(
+            day=current_date.day
+        ) + timedelta(days=1)
+
+    return dates
+
+
+def get_weekend_warnings(start_date, end_date):
+    weekend_warnings = []
+
+    leave_dates = get_dates_between(
+        start_date,
+        end_date
+    )
+
+    weekend_days = []
+
+    for date in leave_dates:
+        if date.weekday() in [5, 6]:
+            weekend_days.append(
+                date.strftime("%Y-%m-%d")
+            )
+
+    if weekend_days:
+        weekend_warnings.append(
+            "Leave includes weekend days: "
+            + ", ".join(weekend_days)
+        )
+
+    return weekend_warnings
+
+
+def get_holiday_warnings(start_date, end_date):
+    holiday_warnings = []
+
+    federal_holidays = {
+        "2026-01-01": "New Year's Day",
+        "2026-01-19": "Martin Luther King Jr. Day",
+        "2026-02-16": "Presidents Day",
+        "2026-05-25": "Memorial Day",
+        "2026-06-19": "Juneteenth",
+        "2026-07-03": "Independence Day Observed",
+        "2026-09-07": "Labor Day",
+        "2026-10-12": "Columbus Day",
+        "2026-11-11": "Veterans Day",
+        "2026-11-26": "Thanksgiving Day",
+        "2026-12-25": "Christmas Day"
+    }
+
+    leave_dates = get_dates_between(
+        start_date,
+        end_date
+    )
+
+    for date in leave_dates:
+        date_string = date.strftime("%Y-%m-%d")
+
+        if date_string in federal_holidays:
+            holiday_warnings.append(
+                "Leave overlaps "
+                + federal_holidays[date_string]
+                + " on "
+                + date_string
+            )
+
+    return holiday_warnings
 
 def print_checklist(
     checklist,
@@ -206,6 +289,24 @@ def print_checklist(
             "Pass duration exceeds 4 days. "
             "This may require ordinary leave instead."
         )
+
+    weekend_warnings = get_weekend_warnings(
+        start_date,
+        end_date
+    )
+
+    holiday_warnings = get_holiday_warnings(
+        start_date,
+        end_date
+    )
+
+    policy_warnings.extend(
+        weekend_warnings
+    )
+
+    policy_warnings.extend(
+        holiday_warnings
+    )
 
     print("\n" + "=" * 40)
     print(" LEAVE REQUEST SUMMARY")
