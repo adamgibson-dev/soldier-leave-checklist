@@ -187,6 +187,26 @@ def print_checklist(
         end_date
     )
 
+    policy_warnings = []
+
+    if (
+        checklist["title"] != "Pass Checklist"
+        and leave_days <= 4
+    ):
+        policy_warnings.append(
+            "Leave duration is 4 days or less. "
+            "This may qualify as a pass instead of leave."
+        )
+
+    if (
+        checklist["title"] == "Pass Checklist"
+        and leave_days > 4
+    ):
+        policy_warnings.append(
+            "Pass duration exceeds 4 days. "
+            "This may require ordinary leave instead."
+        )
+
     print("\n" + "=" * 40)
     print(" LEAVE REQUEST SUMMARY")
     print("=" * 40)
@@ -237,6 +257,16 @@ def print_checklist(
     )
 
     print("\n" + "=" * 40)
+    print(" POLICY WARNINGS")
+    print("=" * 40)
+
+    if policy_warnings:
+        for warning in policy_warnings:
+            print(f"WARNING: {warning}")
+    else:
+        print("No policy warnings identified")
+
+    print("\n" + "=" * 40)
     print(" RISK ASSESSMENT")
     print("=" * 40)
 
@@ -248,6 +278,9 @@ def print_checklist(
     else:
         print("No risk flags identified")
         status = "Ready for Submission"
+
+    if policy_warnings:
+        status = "Requires Leadership Review"
 
     print("\n" + "=" * 40)
     print(" LEAVE STATUS")
@@ -277,7 +310,8 @@ def print_checklist(
         leave_days,
         risk_flags,
         status,
-        emergency_contact
+        emergency_contact,
+        policy_warnings
     )
 
     save_checklist_to_pdf(
@@ -290,7 +324,8 @@ def print_checklist(
         leave_days,
         risk_flags,
         status,
-        emergency_contact
+        emergency_contact,
+        policy_warnings
     )
 
 def calculate_leave_days(start_date, end_date):
@@ -311,7 +346,8 @@ def save_checklist_to_file(
     leave_days,
     risk_flags,
     status,
-    emergency_contact
+    emergency_contact,
+    policy_warnings
 ):
     filename = (
         f"{soldier_name}"
@@ -364,9 +400,7 @@ def save_checklist_to_file(
 
         file.write("\n")
         file.write("=" * 40 + "\n")
-        file.write(
-            "EMERGENCY CONTACT\n"
-        )
+        file.write("EMERGENCY CONTACT\n")
         file.write("=" * 40 + "\n")
 
         file.write(
@@ -396,9 +430,22 @@ def save_checklist_to_file(
 
         file.write("\n")
         file.write("=" * 40 + "\n")
-        file.write(
-            "RISK ASSESSMENT\n"
-        )
+        file.write("POLICY WARNINGS\n")
+        file.write("=" * 40 + "\n")
+
+        if policy_warnings:
+            for warning in policy_warnings:
+                file.write(
+                    f"WARNING: {warning}\n"
+                )
+        else:
+            file.write(
+                "No policy warnings identified\n"
+            )
+
+        file.write("\n")
+        file.write("=" * 40 + "\n")
+        file.write("RISK ASSESSMENT\n")
         file.write("=" * 40 + "\n")
 
         if risk_flags:
@@ -413,9 +460,7 @@ def save_checklist_to_file(
 
         file.write("\n")
         file.write("=" * 40 + "\n")
-        file.write(
-            "LEAVE STATUS\n"
-        )
+        file.write("LEAVE STATUS\n")
         file.write("=" * 40 + "\n")
 
         file.write(
@@ -1015,7 +1060,8 @@ def save_checklist_to_pdf(
     leave_days,
     risk_flags,
     status,
-    emergency_contact
+    emergency_contact,
+    policy_warnings
 ):
     filename = (
         f"{soldier_name}"
@@ -1102,6 +1148,33 @@ def save_checklist_to_pdf(
     )
 
     y_position -= 30
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(72, y_position, "Policy Warnings")
+
+    y_position -= 20
+
+    pdf.setFont("Helvetica", 11)
+
+    if policy_warnings:
+        for warning in policy_warnings:
+            pdf.drawString(
+                72,
+                y_position,
+                f"WARNING: {warning}"
+            )
+
+            y_position -= 20
+    else:
+        pdf.drawString(
+            72,
+            y_position,
+            "No policy warnings identified"
+        )
+
+        y_position -= 20
+
+    y_position -= 20
 
     pdf.setFont("Helvetica-Bold", 12)
     pdf.drawString(72, y_position, "Risk Assessment")
