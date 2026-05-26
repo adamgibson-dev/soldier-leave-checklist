@@ -22,6 +22,14 @@ Relationship: Mother
 Phone Number: 111-111-1111
 Leave Address: 123 Pizza St
 Travel Method: FLIGHT
+Travel Category: UNKNOWN
+Recall Risk: MEDIUM
+
+========================================
+POLICY WARNINGS
+========================================
+WARNING: Leave duration is 4 days or less. This may qualify as a pass instead of leave.
+WARNING: Commercial travel may delay emergency recall.
 
 ========================================
 RISK ASSESSMENT
@@ -33,4 +41,13 @@ LEAVE STATUS
 ========================================
 Leave Type: Ordinary Leave Checklist
 Duration: 1 day(s)
-Status: Ready for Submission
+Status: Requires Leadership Review
+
+========================================
+LEADER RECOMMENDATION
+========================================
+Recommended Action: LEADERSHIP REVIEW REQUIRED
+
+Reasons:
+- Leave duration is 4 days or less. This may qualify as a pass instead of leave.
+- Commercial travel may delay emergency recall.

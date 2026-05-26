@@ -412,6 +412,39 @@ def get_travel_category(
         "MEDIUM"
     )
 
+def get_leader_recommendation(
+    risk_flags,
+    policy_warnings,
+    recall_risk
+):
+    recommendation_reasons = []
+
+    if risk_flags:
+        recommendation_reasons.extend(
+            risk_flags
+        )
+
+    if policy_warnings:
+        recommendation_reasons.extend(
+            policy_warnings
+        )
+
+    if recall_risk == "HIGH":
+        recommendation_reasons.append(
+            "High recall risk"
+        )
+
+    if recommendation_reasons:
+        return (
+            "LEADERSHIP REVIEW REQUIRED",
+            recommendation_reasons
+        )
+
+    return (
+        "APPROVE",
+        []
+    )
+
 def print_checklist(
     checklist,
     soldier_name,
@@ -489,6 +522,14 @@ def print_checklist(
 
     policy_warnings.extend(
         recall_warnings
+    )
+
+    recommendation, recommendation_reasons = (
+        get_leader_recommendation(
+            risk_flags,
+            policy_warnings,
+            recall_risk
+        )
     )
 
     print("\n" + "=" * 40)
@@ -594,6 +635,21 @@ def print_checklist(
         f"Status: {status}"
     )
 
+    print("\n" + "=" * 40)
+    print(" LEADER RECOMMENDATION")
+    print("=" * 40)
+
+    print(
+        f"Recommended Action: "
+        f"{recommendation}"
+    )
+
+    if recommendation_reasons:
+        print("\nReasons:")
+
+        for reason in recommendation_reasons:
+            print(f"- {reason}")
+
     save_checklist_to_file(
         checklist,
         soldier_name,
@@ -643,84 +699,52 @@ def save_checklist_to_file(
     emergency_contact,
     policy_warnings
 ):
+    travel_category, recall_risk = get_travel_category(
+        emergency_contact["travel_method"],
+        emergency_contact["leave_address"]
+    )
+
+    recommendation, recommendation_reasons = (
+        get_leader_recommendation(
+            risk_flags,
+            policy_warnings,
+            recall_risk
+        )
+    )
+
     filename = (
         f"{soldier_name}"
         "_leave_checklist.txt"
     )
 
     with open(filename, "w") as file:
-        file.write(
-            f"Soldier: {soldier_name}\n"
-        )
+        file.write(f"Soldier: {soldier_name}\n")
+        file.write(f"Unit: {unit}\n")
+        file.write(f"Company: {company}\n")
+        file.write(f"Start Date: {start_date}\n")
+        file.write(f"End Date: {end_date}\n")
+        file.write(f"Total Leave Days: {leave_days}\n\n")
 
-        file.write(
-            f"Unit: {unit}\n"
-        )
-
-        file.write(
-            f"Company: {company}\n"
-        )
-
-        file.write(
-            f"Start Date: {start_date}\n"
-        )
-
-        file.write(
-            f"End Date: {end_date}\n"
-        )
-
-        file.write(
-            f"Total Leave Days: "
-            f"{leave_days}\n\n"
-        )
-
-        file.write(
-            f"{checklist['title']}\n"
-        )
-
-        file.write(
-            "-" *
-            len(checklist["title"])
-            + "\n"
-        )
+        file.write(f"{checklist['title']}\n")
+        file.write("-" * len(checklist["title"]) + "\n")
 
         for number, item in enumerate(
             checklist["items"],
             start=1
         ):
-            file.write(
-                f"{number}. {item}\n"
-            )
+            file.write(f"{number}. {item}\n")
 
         file.write("\n")
         file.write("=" * 40 + "\n")
         file.write("EMERGENCY CONTACT\n")
         file.write("=" * 40 + "\n")
-
-        file.write(
-            f"Contact Name: "
-            f"{emergency_contact['contact_name']}\n"
-        )
-
-        file.write(
-            f"Relationship: "
-            f"{emergency_contact['relationship']}\n"
-        )
-
-        file.write(
-            f"Phone Number: "
-            f"{emergency_contact['phone_number']}\n"
-        )
-
-        file.write(
-            f"Leave Address: "
-            f"{emergency_contact['leave_address']}\n"
-        )
-
-        file.write(
-            f"Travel Method: "
-            f"{emergency_contact['travel_method']}\n"
-        )
+        file.write(f"Contact Name: {emergency_contact['contact_name']}\n")
+        file.write(f"Relationship: {emergency_contact['relationship']}\n")
+        file.write(f"Phone Number: {emergency_contact['phone_number']}\n")
+        file.write(f"Leave Address: {emergency_contact['leave_address']}\n")
+        file.write(f"Travel Method: {emergency_contact['travel_method']}\n")
+        file.write(f"Travel Category: {travel_category}\n")
+        file.write(f"Recall Risk: {recall_risk}\n")
 
         file.write("\n")
         file.write("=" * 40 + "\n")
@@ -729,13 +753,9 @@ def save_checklist_to_file(
 
         if policy_warnings:
             for warning in policy_warnings:
-                file.write(
-                    f"WARNING: {warning}\n"
-                )
+                file.write(f"WARNING: {warning}\n")
         else:
-            file.write(
-                "No policy warnings identified\n"
-            )
+            file.write("No policy warnings identified\n")
 
         file.write("\n")
         file.write("=" * 40 + "\n")
@@ -744,32 +764,29 @@ def save_checklist_to_file(
 
         if risk_flags:
             for flag in risk_flags:
-                file.write(
-                    f"WARNING: {flag}\n"
-                )
+                file.write(f"WARNING: {flag}\n")
         else:
-            file.write(
-                "No risk flags identified\n"
-            )
+            file.write("No risk flags identified\n")
 
         file.write("\n")
         file.write("=" * 40 + "\n")
         file.write("LEAVE STATUS\n")
         file.write("=" * 40 + "\n")
+        file.write(f"Leave Type: {checklist['title']}\n")
+        file.write(f"Duration: {leave_days} day(s)\n")
+        file.write(f"Status: {status}\n")
 
-        file.write(
-            f"Leave Type: "
-            f"{checklist['title']}\n"
-        )
+        file.write("\n")
+        file.write("=" * 40 + "\n")
+        file.write("LEADER RECOMMENDATION\n")
+        file.write("=" * 40 + "\n")
+        file.write(f"Recommended Action: {recommendation}\n")
 
-        file.write(
-            f"Duration: "
-            f"{leave_days} day(s)\n"
-        )
+        if recommendation_reasons:
+            file.write("\nReasons:\n")
 
-        file.write(
-            f"Status: {status}\n"
-        )
+            for reason in recommendation_reasons:
+                file.write(f"- {reason}\n")
 
     print(
         f"\nText file saved as "
@@ -1378,6 +1395,19 @@ def save_checklist_to_pdf(
     emergency_contact,
     policy_warnings
 ):
+    travel_category, recall_risk = get_travel_category(
+        emergency_contact["travel_method"],
+        emergency_contact["leave_address"]
+    )
+
+    recommendation, recommendation_reasons = (
+        get_leader_recommendation(
+            risk_flags,
+            policy_warnings,
+            recall_risk
+        )
+    )
+
     filename = (
         f"{soldier_name}"
         "_leave_checklist.pdf"
@@ -1460,6 +1490,22 @@ def save_checklist_to_pdf(
         72,
         y_position,
         f"Travel Method: {emergency_contact['travel_method']}"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Travel Category: {travel_category}"
+    )
+
+    y_position -= 20
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Recall Risk: {recall_risk}"
     )
 
     y_position -= 30
@@ -1546,6 +1592,41 @@ def save_checklist_to_pdf(
         y_position,
         f"Status: {status}"
     )
+
+    y_position -= 30
+
+    pdf.setFont("Helvetica-Bold", 12)
+    pdf.drawString(72, y_position, "Leader Recommendation")
+
+    y_position -= 20
+
+    pdf.setFont("Helvetica", 11)
+
+    pdf.drawString(
+        72,
+        y_position,
+        f"Recommended Action: {recommendation}"
+    )
+
+    y_position -= 20
+
+    if recommendation_reasons:
+        pdf.drawString(
+            72,
+            y_position,
+            "Reasons:"
+        )
+
+        y_position -= 20
+
+        for reason in recommendation_reasons:
+            pdf.drawString(
+                72,
+                y_position,
+                f"- {reason}"
+            )
+
+            y_position -= 20
 
     pdf.save()
 
