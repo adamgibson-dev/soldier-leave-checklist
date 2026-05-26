@@ -255,6 +255,68 @@ def get_holiday_warnings(start_date, end_date):
 
     return holiday_warnings
 
+def get_recall_risk_warning(
+    travel_method,
+    leave_address
+):
+    recall_warnings = []
+
+    leave_address = (
+        leave_address.upper()
+    )
+
+    high_risk_locations = [
+        "FLORIDA",
+        "TEXAS",
+        "CALIFORNIA",
+        "HAWAII",
+        "NEW YORK",
+        "OVERSEAS",
+        "GERMANY",
+        "JAPAN",
+        "KOREA"
+    ]
+
+    alaska_locations = [
+        "ANCHORAGE",
+        "JBER",
+        "WASILLA",
+        "PALMER",
+        "EAGLE RIVER",
+        "FAIRBANKS"
+    ]
+
+    if (
+        travel_method == "POV"
+        and any(
+            location in leave_address
+            for location
+            in alaska_locations
+        )
+    ):
+        return recall_warnings
+
+    if any(
+        location in leave_address
+        for location
+        in high_risk_locations
+    ):
+        recall_warnings.append(
+            "Travel location may impact "
+            "recall readiness."
+        )
+
+    if (
+        travel_method
+        in ["FLIGHT", "TRAIN"]
+    ):
+        recall_warnings.append(
+            "Commercial travel may "
+            "delay emergency recall."
+        )
+
+    return recall_warnings
+
 def print_checklist(
     checklist,
     soldier_name,
@@ -300,12 +362,21 @@ def print_checklist(
         end_date
     )
 
+    recall_warnings = get_recall_risk_warning(
+        emergency_contact["travel_method"],
+        emergency_contact["leave_address"]
+    )
+
     policy_warnings.extend(
         weekend_warnings
     )
 
     policy_warnings.extend(
         holiday_warnings
+    )
+
+    policy_warnings.extend(
+        recall_warnings
     )
 
     print("\n" + "=" * 40)
