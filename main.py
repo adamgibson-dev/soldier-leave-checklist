@@ -974,14 +974,36 @@ def get_leave_dates():
 
         if leave_days < 0:
             print(
-                "\nEnd date cannot be earlier than start date."
+                "\nEnd date cannot "
+                "be earlier than "
+                "start date."
             )
 
             print(
-                "Please enter the dates again.\n"
+                "Please enter the "
+                "dates again.\n"
             )
+
+        elif leave_days > 30:
+            print(
+                "\nWARNING:"
+            )
+
+            print(
+                "Leave exceeds "
+                "30 days."
+            )
+
+            print(
+                "Please adjust "
+                "leave dates.\n"
+            )
+
         else:
-            return start_date, end_date
+            return (
+                start_date,
+                end_date
+            )
 
 def save_checklist_to_pdf(
     checklist,
