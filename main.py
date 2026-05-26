@@ -1141,6 +1141,95 @@ def save_checklist_to_pdf(
 
     print(f"PDF saved as {filename}")
 
+def confirm_leave_request(
+    checklist,
+    soldier_name,
+    unit,
+    company,
+    start_date,
+    end_date,
+    risk_flags,
+    emergency_contact
+):
+    leave_days = calculate_leave_days(
+        start_date,
+        end_date
+    )
+
+    print("\n" + "=" * 40)
+    print(" CONFIRM LEAVE REQUEST")
+    print("=" * 40)
+
+    print(f"Soldier: {soldier_name}")
+    print(f"Unit: {unit}")
+    print(f"Company: {company}")
+    print(f"Leave Type: {checklist['title']}")
+    print(f"Start Date: {start_date}")
+    print(f"End Date: {end_date}")
+    print(f"Total Leave Days: {leave_days}")
+
+    print("\nEmergency Contact")
+    print("-" * 17)
+    print(
+        f"Name: "
+        f"{emergency_contact['contact_name']}"
+    )
+    print(
+        f"Relationship: "
+        f"{emergency_contact['relationship']}"
+    )
+    print(
+        f"Phone: "
+        f"{emergency_contact['phone_number']}"
+    )
+    print(
+        f"Leave Address: "
+        f"{emergency_contact['leave_address']}"
+    )
+    print(
+        f"Travel Method: "
+        f"{emergency_contact['travel_method']}"
+    )
+
+    print("\nRisk Assessment")
+    print("-" * 15)
+
+    if risk_flags:
+        for flag in risk_flags:
+            print(f"WARNING: {flag}")
+    else:
+        print("No risk flags identified")
+
+    confirmation = get_confirmation_choice(
+        "\nProceed with submission? "
+        "(YES/EDIT/CANCEL): "
+    )
+
+    return confirmation
+
+def get_confirmation_choice(prompt):
+    valid_choices = [
+        "YES",
+        "EDIT",
+        "CANCEL",
+        "BACK"
+    ]
+
+    while True:
+        show_navigation_options()
+
+        choice = input(prompt).strip().upper()
+
+        choice = handle_navigation(
+            choice
+        )
+
+        if choice in valid_choices:
+            return choice
+
+        print("\nInvalid response.")
+        print("Please enter YES, EDIT, or CANCEL.\n")
+
 def main():
     while True:
         print_header()
@@ -1233,10 +1322,8 @@ def main():
             elif step == "leave_type":
                 display_menu()
 
-                choice = (
-                    get_valid_menu_choice(
-                        "\nSelect an option: "
-                    )
+                choice = get_valid_menu_choice(
+                    "\nSelect an option: "
                 )
 
                 if choice == "BACK":
@@ -1250,38 +1337,108 @@ def main():
                     return
 
                 else:
-                    checklist = (
-                        get_checklist(
-                            choice
-                        )
+                    checklist = get_checklist(
+                        choice
                     )
 
                     step = "risk"
 
             elif step == "risk":
-                risk_flags = (
-                    get_risk_assessment()
-                )
+                risk_flags = get_risk_assessment()
 
                 if risk_flags == "BACK":
                     step = "leave_type"
                 else:
-                    step = (
-                        "emergency_contact"
-                    )
+                    step = "emergency_contact"
 
             elif step == "emergency_contact":
                 emergency_contact = (
                     get_emergency_contact_info()
                 )
 
-                if (
-                    emergency_contact
-                    == "BACK"
-                ):
+                if emergency_contact == "BACK":
                     step = "risk"
                 else:
+                    step = "confirm"
+
+            elif step == "confirm":
+                confirmation = (
+                    confirm_leave_request(
+                        checklist,
+                        soldier_name,
+                        unit,
+                        company,
+                        start_date,
+                        end_date,
+                        risk_flags,
+                        emergency_contact
+                    )
+                )
+
+                if confirmation == "YES":
                     step = "print"
+
+                elif confirmation == "EDIT":
+                    step = "edit_menu"
+
+                elif confirmation == "CANCEL":
+                    print(
+                        "\nLeave request cancelled."
+                    )
+                    break
+
+                elif confirmation == "BACK":
+                    step = "emergency_contact"
+
+            elif step == "edit_menu":
+                print("\n" + "=" * 40)
+                print(" EDIT LEAVE REQUEST")
+                print("=" * 40)
+                print("1. Soldier Info")
+                print("2. Unit / Company")
+                print("3. Leave Dates")
+                print("4. Leave Type")
+                print("5. Risk Assessment")
+                print("6. Emergency Contact")
+                print("7. Return to Confirmation")
+
+                edit_choice = input(
+                    "\nSelect section to edit: "
+                ).strip()
+
+                edit_choice = handle_navigation(
+                    edit_choice
+                )
+
+                if edit_choice == "BACK":
+                    step = "confirm"
+
+                elif edit_choice == "1":
+                    step = "rank"
+
+                elif edit_choice == "2":
+                    step = "unit"
+
+                elif edit_choice == "3":
+                    step = "dates"
+
+                elif edit_choice == "4":
+                    step = "leave_type"
+
+                elif edit_choice == "5":
+                    step = "risk"
+
+                elif edit_choice == "6":
+                    step = "emergency_contact"
+
+                elif edit_choice == "7":
+                    step = "confirm"
+
+                else:
+                    print(
+                        "\nInvalid option. "
+                        "Please select 1 through 7."
+                    )
 
             elif step == "print":
                 print_checklist(
@@ -1298,19 +1455,15 @@ def main():
                 step = "run_again"
 
             elif step == "run_again":
-                run_again = (
-                    get_yes_or_no(
-                        "\nWould you like "
-                        "to create another "
-                        "checklist? "
-                        "(YES/NO): "
-                    )
+                run_again = get_yes_or_no(
+                    "\nWould you like "
+                    "to create another "
+                    "checklist? "
+                    "(YES/NO): "
                 )
 
                 if run_again == "BACK":
-                    step = (
-                        "emergency_contact"
-                    )
+                    step = "confirm"
 
                 elif run_again == "YES":
                     break
