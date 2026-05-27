@@ -1,3 +1,4 @@
+import csv
 from datetime import datetime, timedelta
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -445,6 +446,94 @@ def get_leader_recommendation(
         []
     )
 
+def save_leave_record_to_csv(
+    soldier_name,
+    unit,
+    company,
+    checklist,
+    start_date,
+    end_date,
+    leave_days,
+    emergency_contact,
+    status,
+    recommendation
+):
+    filename = "leave_records.csv"
+
+    travel_category, recall_risk = (
+        get_travel_category(
+            emergency_contact[
+                "travel_method"
+            ],
+            emergency_contact[
+                "leave_address"
+            ]
+        )
+    )
+
+    try:
+        with open(
+            filename,
+            "x",
+            newline=""
+        ) as file:
+            writer = csv.writer(
+                file
+            )
+
+            writer.writerow([
+                "Date Created",
+                "Soldier",
+                "Unit",
+                "Company",
+                "Leave Type",
+                "Start Date",
+                "End Date",
+                "Leave Days",
+                "Travel Method",
+                "Travel Category",
+                "Recall Risk",
+                "Status",
+                "Recommendation"
+            ])
+
+    except FileExistsError:
+        pass
+
+    with open(
+        filename,
+        "a",
+        newline=""
+    ) as file:
+        writer = csv.writer(
+            file
+        )
+
+        writer.writerow([
+            datetime.now().strftime(
+                "%Y-%m-%d %H:%M:%S"
+            ),
+            soldier_name,
+            unit,
+            company,
+            checklist["title"],
+            start_date,
+            end_date,
+            leave_days,
+            emergency_contact[
+                "travel_method"
+            ],
+            travel_category,
+            recall_risk,
+            status,
+            recommendation
+        ])
+
+    print(
+        "\nLeave record saved "
+        "to leave_records.csv"
+    )
+
 def print_checklist(
     checklist,
     soldier_name,
@@ -490,39 +579,19 @@ def print_checklist(
         end_date
     )
 
-    recall_warnings = (
-        get_recall_risk_warning(
-            emergency_contact[
-                "travel_method"
-            ],
-            emergency_contact[
-                "leave_address"
-            ]
-        )
+    recall_warnings = get_recall_risk_warning(
+        emergency_contact["travel_method"],
+        emergency_contact["leave_address"]
     )
 
-    travel_category, recall_risk = (
-        get_travel_category(
-            emergency_contact[
-                "travel_method"
-            ],
-            emergency_contact[
-                "leave_address"
-            ]
-        )
+    travel_category, recall_risk = get_travel_category(
+        emergency_contact["travel_method"],
+        emergency_contact["leave_address"]
     )
 
-    policy_warnings.extend(
-        weekend_warnings
-    )
-
-    policy_warnings.extend(
-        holiday_warnings
-    )
-
-    policy_warnings.extend(
-        recall_warnings
-    )
+    policy_warnings.extend(weekend_warnings)
+    policy_warnings.extend(holiday_warnings)
+    policy_warnings.extend(recall_warnings)
 
     recommendation, recommendation_reasons = (
         get_leader_recommendation(
@@ -531,6 +600,15 @@ def print_checklist(
             recall_risk
         )
     )
+
+    if (
+        risk_flags
+        or policy_warnings
+        or recommendation == "LEADERSHIP REVIEW REQUIRED"
+    ):
+        status = "Requires Leadership Review"
+    else:
+        status = "Ready for Submission"
 
     print("\n" + "=" * 40)
     print(" LEAVE REQUEST SUMMARY")
@@ -556,40 +634,13 @@ def print_checklist(
     print(" EMERGENCY CONTACT")
     print("=" * 40)
 
-    print(
-        f"Contact Name: "
-        f"{emergency_contact['contact_name']}"
-    )
-
-    print(
-        f"Relationship: "
-        f"{emergency_contact['relationship']}"
-    )
-
-    print(
-        f"Phone Number: "
-        f"{emergency_contact['phone_number']}"
-    )
-
-    print(
-        f"Leave Address: "
-        f"{emergency_contact['leave_address']}"
-    )
-
-    print(
-        f"Travel Method: "
-        f"{emergency_contact['travel_method']}"
-    )
-
-    print(
-        f"Travel Category: "
-        f"{travel_category}"
-    )
-
-    print(
-        f"Recall Risk: "
-        f"{recall_risk}"
-    )
+    print(f"Contact Name: {emergency_contact['contact_name']}")
+    print(f"Relationship: {emergency_contact['relationship']}")
+    print(f"Phone Number: {emergency_contact['phone_number']}")
+    print(f"Leave Address: {emergency_contact['leave_address']}")
+    print(f"Travel Method: {emergency_contact['travel_method']}")
+    print(f"Travel Category: {travel_category}")
+    print(f"Recall Risk: {recall_risk}")
 
     print("\n" + "=" * 40)
     print(" POLICY WARNINGS")
@@ -608,41 +659,22 @@ def print_checklist(
     if risk_flags:
         for flag in risk_flags:
             print(f"WARNING: {flag}")
-
-        status = "Requires Leadership Review"
     else:
         print("No risk flags identified")
-        status = "Ready for Submission"
-
-    if policy_warnings:
-        status = "Requires Leadership Review"
 
     print("\n" + "=" * 40)
     print(" LEAVE STATUS")
     print("=" * 40)
 
-    print(
-        f"Leave Type: "
-        f"{checklist['title']}"
-    )
-
-    print(
-        f"Duration: "
-        f"{leave_days} day(s)"
-    )
-
-    print(
-        f"Status: {status}"
-    )
+    print(f"Leave Type: {checklist['title']}")
+    print(f"Duration: {leave_days} day(s)")
+    print(f"Status: {status}")
 
     print("\n" + "=" * 40)
     print(" LEADER RECOMMENDATION")
     print("=" * 40)
 
-    print(
-        f"Recommended Action: "
-        f"{recommendation}"
-    )
+    print(f"Recommended Action: {recommendation}")
 
     if recommendation_reasons:
         print("\nReasons:")
@@ -676,6 +708,19 @@ def print_checklist(
         status,
         emergency_contact,
         policy_warnings
+    )
+
+    save_leave_record_to_csv(
+        soldier_name,
+        unit,
+        company,
+        checklist,
+        start_date,
+        end_date,
+        leave_days,
+        emergency_contact,
+        status,
+        recommendation
     )
 
 def calculate_leave_days(start_date, end_date):
