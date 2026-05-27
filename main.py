@@ -1,4 +1,10 @@
 import csv
+import sqlite3
+import tkinter as tk
+from tkinter import messagebox
+from datetime import datetime, timedelta
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 from datetime import datetime, timedelta
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -535,6 +541,93 @@ def save_leave_record_to_csv(
         "to leave_records.csv"
     )
 
+def initialize_database():
+    connection = sqlite3.connect("leave_records.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS leave_records (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            date_created TEXT,
+            soldier TEXT,
+            unit TEXT,
+            company TEXT,
+            leave_type TEXT,
+            start_date TEXT,
+            end_date TEXT,
+            leave_days INTEGER,
+            travel_method TEXT,
+            travel_category TEXT,
+            recall_risk TEXT,
+            status TEXT,
+            recommendation TEXT
+        )
+    """)
+
+    connection.commit()
+    connection.close()
+
+
+def save_leave_record_to_database(
+    soldier_name,
+    unit,
+    company,
+    checklist,
+    start_date,
+    end_date,
+    leave_days,
+    emergency_contact,
+    status,
+    recommendation
+):
+    initialize_database()
+
+    travel_category, recall_risk = get_travel_category(
+        emergency_contact["travel_method"],
+        emergency_contact["leave_address"]
+    )
+
+    connection = sqlite3.connect("leave_records.db")
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        INSERT INTO leave_records (
+            date_created,
+            soldier,
+            unit,
+            company,
+            leave_type,
+            start_date,
+            end_date,
+            leave_days,
+            travel_method,
+            travel_category,
+            recall_risk,
+            status,
+            recommendation
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        soldier_name,
+        unit,
+        company,
+        checklist["title"],
+        start_date,
+        end_date,
+        leave_days,
+        emergency_contact["travel_method"],
+        travel_category,
+        recall_risk,
+        status,
+        recommendation
+    ))
+
+    connection.commit()
+    connection.close()
+
+    print("\nLeave record saved to leave_records.db")
+
 def print_checklist(
     checklist,
     soldier_name,
@@ -590,9 +683,17 @@ def print_checklist(
         emergency_contact["leave_address"]
     )
 
-    policy_warnings.extend(weekend_warnings)
-    policy_warnings.extend(holiday_warnings)
-    policy_warnings.extend(recall_warnings)
+    policy_warnings.extend(
+        weekend_warnings
+    )
+
+    policy_warnings.extend(
+        holiday_warnings
+    )
+
+    policy_warnings.extend(
+        recall_warnings
+    )
 
     recommendation, recommendation_reasons = (
         get_leader_recommendation(
@@ -635,13 +736,40 @@ def print_checklist(
     print(" EMERGENCY CONTACT")
     print("=" * 40)
 
-    print(f"Contact Name: {emergency_contact['contact_name']}")
-    print(f"Relationship: {emergency_contact['relationship']}")
-    print(f"Phone Number: {emergency_contact['phone_number']}")
-    print(f"Leave Address: {emergency_contact['leave_address']}")
-    print(f"Travel Method: {emergency_contact['travel_method']}")
-    print(f"Travel Category: {travel_category}")
-    print(f"Recall Risk: {recall_risk}")
+    print(
+        f"Contact Name: "
+        f"{emergency_contact['contact_name']}"
+    )
+
+    print(
+        f"Relationship: "
+        f"{emergency_contact['relationship']}"
+    )
+
+    print(
+        f"Phone Number: "
+        f"{emergency_contact['phone_number']}"
+    )
+
+    print(
+        f"Leave Address: "
+        f"{emergency_contact['leave_address']}"
+    )
+
+    print(
+        f"Travel Method: "
+        f"{emergency_contact['travel_method']}"
+    )
+
+    print(
+        f"Travel Category: "
+        f"{travel_category}"
+    )
+
+    print(
+        f"Recall Risk: "
+        f"{recall_risk}"
+    )
 
     print("\n" + "=" * 40)
     print(" POLICY WARNINGS")
@@ -667,15 +795,28 @@ def print_checklist(
     print(" LEAVE STATUS")
     print("=" * 40)
 
-    print(f"Leave Type: {checklist['title']}")
-    print(f"Duration: {leave_days} day(s)")
-    print(f"Status: {status}")
+    print(
+        f"Leave Type: "
+        f"{checklist['title']}"
+    )
+
+    print(
+        f"Duration: "
+        f"{leave_days} day(s)"
+    )
+
+    print(
+        f"Status: {status}"
+    )
 
     print("\n" + "=" * 40)
     print(" LEADER RECOMMENDATION")
     print("=" * 40)
 
-    print(f"Recommended Action: {recommendation}")
+    print(
+        f"Recommended Action: "
+        f"{recommendation}"
+    )
 
     if recommendation_reasons:
         print("\nReasons:")
@@ -711,7 +852,7 @@ def print_checklist(
         policy_warnings
     )
 
-    save_leave_record_to_csv(
+    save_leave_record_to_database(
         soldier_name,
         unit,
         company,
@@ -1752,10 +1893,11 @@ def display_main_menu():
     print("2. Search Soldier Leave History")
     print("3. View All Leave Records")
     print("4. Battalion Dashboard")
-    print("5. Exit")
+    print("5. Launch GUI Dashboard")
+    print("6. Exit")
 
 def get_main_menu_choice():
-    valid_choices = ["1", "2", "3", "4", "5"]
+    valid_choices = ["1", "2", "3", "4", "5", "6"]
 
     while True:
         show_navigation_options()
@@ -1770,10 +1912,10 @@ def get_main_menu_choice():
             return choice
 
         print("\nInvalid option.")
-        print("Please select 1 through 5.\n")
+        print("Please select 1 through 6.\n")
 
 def search_leave_history():
-    filename = "leave_records.csv"
+    initialize_database()
 
     search_name = get_required_input(
         "Enter Soldier name to search: "
@@ -1782,300 +1924,221 @@ def search_leave_history():
     if search_name == "BACK":
         return
 
-    search_name = search_name.upper()
+    connection = sqlite3.connect("leave_records.db")
+    cursor = connection.cursor()
 
-    try:
-        with open(
-            filename,
-            "r",
-            newline=""
-        ) as file:
-            reader = csv.DictReader(file)
+    cursor.execute("""
+        SELECT
+            soldier,
+            unit,
+            company,
+            leave_type,
+            start_date,
+            end_date,
+            leave_days,
+            status,
+            recommendation
+        FROM leave_records
+        WHERE UPPER(soldier) LIKE ?
+    """, (
+        f"%{search_name.upper()}%",
+    ))
 
-            results_found = False
+    results = cursor.fetchall()
+    connection.close()
 
-            print("\n" + "=" * 40)
-            print(" LEAVE HISTORY RESULTS")
-            print("=" * 40)
+    print("\n" + "=" * 40)
+    print(" LEAVE HISTORY RESULTS")
+    print("=" * 40)
 
-            for row in reader:
-                if search_name in row["Soldier"].upper():
-                    results_found = True
+    if not results:
+        print("\nNo leave records found for that Soldier.")
+        return
 
-                    print(
-                        f"\nSoldier: "
-                        f"{row['Soldier']}"
-                    )
-
-                    print(
-                        f"Unit: "
-                        f"{row['Unit']}"
-                    )
-
-                    print(
-                        f"Company: "
-                        f"{row['Company']}"
-                    )
-
-                    print(
-                        f"Leave Type: "
-                        f"{row['Leave Type']}"
-                    )
-
-                    print(
-                        f"Start Date: "
-                        f"{row['Start Date']}"
-                    )
-
-                    print(
-                        f"End Date: "
-                        f"{row['End Date']}"
-                    )
-
-                    print(
-                        f"Leave Days: "
-                        f"{row['Leave Days']}"
-                    )
-
-                    print(
-                        f"Status: "
-                        f"{row['Status']}"
-                    )
-
-                    print(
-                        f"Recommendation: "
-                        f"{row['Recommendation']}"
-                    )
-
-                    print("-" * 40)
-
-            if not results_found:
-                print(
-                    "\nNo leave records found "
-                    "for that Soldier."
-                )
-
-    except FileNotFoundError:
-        print(
-            "\nNo leave database found yet."
-        )
-
-        print(
-            "Create a leave request first.\n"
-        )
+    for row in results:
+        print(f"\nSoldier: {row[0]}")
+        print(f"Unit: {row[1]}")
+        print(f"Company: {row[2]}")
+        print(f"Leave Type: {row[3]}")
+        print(f"Start Date: {row[4]}")
+        print(f"End Date: {row[5]}")
+        print(f"Leave Days: {row[6]}")
+        print(f"Status: {row[7]}")
+        print(f"Recommendation: {row[8]}")
+        print("-" * 40)
 
 def view_all_leave_records():
-    filename = "leave_records.csv"
+    initialize_database()
 
-    try:
-        with open(
-            filename,
-            "r",
-            newline=""
-        ) as file:
-            reader = csv.DictReader(file)
+    connection = sqlite3.connect("leave_records.db")
+    cursor = connection.cursor()
 
-            print("\n" + "=" * 40)
-            print(" ALL LEAVE RECORDS")
-            print("=" * 40)
+    cursor.execute("""
+        SELECT
+            soldier,
+            leave_type,
+            start_date,
+            end_date,
+            status,
+            recommendation
+        FROM leave_records
+        ORDER BY date_created DESC
+    """)
 
-            records_found = False
+    results = cursor.fetchall()
+    connection.close()
 
-            for row in reader:
-                records_found = True
+    print("\n" + "=" * 40)
+    print(" ALL LEAVE RECORDS")
+    print("=" * 40)
 
-                print(
-                    f"\nSoldier: "
-                    f"{row['Soldier']}"
-                )
+    if not results:
+        print("\nNo leave records found.")
+        return
 
-                print(
-                    f"Leave Type: "
-                    f"{row['Leave Type']}"
-                )
-
-                print(
-                    f"Dates: "
-                    f"{row['Start Date']} "
-                    f"to {row['End Date']}"
-                )
-
-                print(
-                    f"Status: "
-                    f"{row['Status']}"
-                )
-
-                print(
-                    f"Recommendation: "
-                    f"{row['Recommendation']}"
-                )
-
-                print("-" * 40)
-
-            if not records_found:
-                print(
-                    "\nNo leave records found."
-                )
-
-    except FileNotFoundError:
-        print(
-            "\nNo leave database found yet."
-        )
-
-        print(
-            "Create a leave request first.\n"
-        )
+    for row in results:
+        print(f"\nSoldier: {row[0]}")
+        print(f"Leave Type: {row[1]}")
+        print(f"Dates: {row[2]} to {row[3]}")
+        print(f"Status: {row[4]}")
+        print(f"Recommendation: {row[5]}")
+        print("-" * 40)
 
 def display_battalion_dashboard():
-    filename = "leave_records.csv"
+    initialize_database()
 
-    try:
-        with open(
-            filename,
-            "r",
-            newline=""
-        ) as file:
-            reader = list(
-                csv.DictReader(file)
-            )
+    connection = sqlite3.connect("leave_records.db")
+    cursor = connection.cursor()
 
-        total_requests = len(reader)
+    cursor.execute("SELECT COUNT(*) FROM leave_records")
+    total_requests = cursor.fetchone()[0]
 
-        leadership_review = sum(
-            1 for row in reader
-            if row["Status"]
-            == "Requires Leadership Review"
-        )
+    if total_requests == 0:
+        connection.close()
+        print("\nNo leave records found.")
+        return
 
-        ready_submission = sum(
-            1 for row in reader
-            if row["Status"]
-            == "Ready for Submission"
-        )
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE status = 'Requires Leadership Review'
+    """)
+    leadership_review = cursor.fetchone()[0]
 
-        high_recall = sum(
-            1 for row in reader
-            if row["Recall Risk"]
-            == "HIGH"
-        )
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE status = 'Ready for Submission'
+    """)
+    ready_submission = cursor.fetchone()[0]
 
-        overseas_travel = sum(
-            1 for row in reader
-            if row["Travel Category"]
-            == "OVERSEAS"
-        )
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE recall_risk = 'HIGH'
+    """)
+    high_recall = cursor.fetchone()[0]
 
-        if total_requests > 0:
-            average_leave = round(
-                sum(
-                    int(
-                        row["Leave Days"]
-                    )
-                    for row in reader
-                ) / total_requests
-            )
-        else:
-            average_leave = 0
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE travel_method IN ('FLIGHT', 'TRAIN', 'BUS')
+    """)
+    commercial_travel = cursor.fetchone()[0]
 
-        travel_methods = {}
+    cursor.execute("""
+        SELECT ROUND(AVG(leave_days), 0)
+        FROM leave_records
+    """)
+    average_leave = cursor.fetchone()[0]
 
-        leave_types = {}
+    cursor.execute("""
+        SELECT unit, COUNT(*)
+        FROM leave_records
+        GROUP BY unit
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    """)
+    most_common_unit = cursor.fetchone()
 
-        for row in reader:
-            travel_method = (
-                row["Travel Method"]
-            )
+    cursor.execute("""
+        SELECT company, COUNT(*)
+        FROM leave_records
+        GROUP BY company
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    """)
+    most_common_company = cursor.fetchone()
 
-            leave_type = (
-                row["Leave Type"]
-            )
+    cursor.execute("""
+        SELECT travel_method, COUNT(*)
+        FROM leave_records
+        GROUP BY travel_method
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    """)
+    most_common_travel = cursor.fetchone()
 
-            travel_methods[
-                travel_method
-            ] = (
-                travel_methods.get(
-                    travel_method,
-                    0
-                ) + 1
-            )
+    cursor.execute("""
+        SELECT leave_type, COUNT(*)
+        FROM leave_records
+        GROUP BY leave_type
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    """)
+    most_common_leave = cursor.fetchone()
 
-            leave_types[
-                leave_type
-            ] = (
-                leave_types.get(
-                    leave_type,
-                    0
-                ) + 1
-            )
+    cursor.execute("""
+        SELECT soldier, leave_days
+        FROM leave_records
+        ORDER BY leave_days DESC
+        LIMIT 1
+    """)
+    longest_leave = cursor.fetchone()
 
-        most_common_travel = (
-            max(
-                travel_methods,
-                key=travel_methods.get
-            )
-            if travel_methods
-            else "N/A"
-        )
+    cursor.execute("""
+        SELECT soldier, leave_days
+        FROM leave_records
+        ORDER BY leave_days ASC
+        LIMIT 1
+    """)
+    shortest_leave = cursor.fetchone()
 
-        most_common_leave = (
-            max(
-                leave_types,
-                key=leave_types.get
-            )
-            if leave_types
-            else "N/A"
-        )
+    connection.close()
 
-        print("\n" + "=" * 40)
-        print(" BATTALION LEAVE DASHBOARD")
-        print("=" * 40)
+    leadership_review_percent = round(
+        (leadership_review / total_requests) * 100
+    )
 
-        print(
-            f"Total Leave Requests: "
-            f"{total_requests}"
-        )
+    print("\n" + "=" * 40)
+    print(" BATTALION LEAVE DASHBOARD")
+    print("=" * 40)
 
-        print(
-            f"Pending Leadership Review: "
-            f"{leadership_review}"
-        )
+    print(f"Total Leave Requests: {total_requests}")
+    print(f"Pending Leadership Review: {leadership_review}")
+    print(f"Ready For Submission: {ready_submission}")
+    print(f"Leadership Review Rate: {leadership_review_percent}%")
+    print(f"High Recall Risk: {high_recall}")
+    print(f"Commercial Travel Requests: {commercial_travel}")
+    print(f"Average Leave Length: {int(average_leave)} day(s)")
 
-        print(
-            f"Ready For Submission: "
-            f"{ready_submission}"
-        )
+    print("\nMost Common Unit:")
+    print(most_common_unit[0])
 
-        print(
-            f"High Recall Risk: "
-            f"{high_recall}"
-        )
+    print("\nMost Common Company:")
+    print(most_common_company[0])
 
-        print(
-            f"Overseas Travel: "
-            f"{overseas_travel}"
-        )
+    print("\nMost Common Travel Method:")
+    print(most_common_travel[0])
 
-        print(
-            f"Average Leave Length: "
-            f"{average_leave} day(s)"
-        )
+    print("\nMost Common Leave Type:")
+    print(most_common_leave[0])
 
-        print("\nMost Common Travel Method:")
-        print(most_common_travel)
+    print("\nLongest Leave Request:")
+    print(f"{longest_leave[0]} - {longest_leave[1]} day(s)")
 
-        print("\nMost Common Leave Type:")
-        print(most_common_leave)
-
-    except FileNotFoundError:
-        print(
-            "\nNo leave database "
-            "found yet."
-        )
-
-        print(
-            "Create leave requests "
-            "first.\n"
-        )
+    print("\nShortest Leave Request:")
+    print(f"{shortest_leave[0]} - {shortest_leave[1]} day(s)")
 
 def display_menu():
     print("\nSelect Leave Type")
@@ -2086,6 +2149,91 @@ def display_menu():
     print("4. Pass")
     print("5. Back")
 
+def launch_gui_dashboard():
+    initialize_database()
+
+    connection = sqlite3.connect("leave_records.db")
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT COUNT(*) FROM leave_records")
+    total_requests = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE status = 'Requires Leadership Review'
+    """)
+    leadership_review = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE status = 'Ready for Submission'
+    """)
+    ready_submission = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE recall_risk = 'HIGH'
+    """)
+    high_recall = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT COUNT(*)
+        FROM leave_records
+        WHERE travel_method IN ('FLIGHT', 'TRAIN', 'BUS')
+    """)
+    commercial_travel = cursor.fetchone()[0]
+
+    cursor.execute("""
+        SELECT ROUND(AVG(leave_days), 0)
+        FROM leave_records
+    """)
+    average_leave = cursor.fetchone()[0]
+
+    connection.close()
+
+    if average_leave is None:
+        average_leave = 0
+
+    window = tk.Tk()
+    window.title("Soldier Leave Accountability Dashboard")
+    window.geometry("500x400")
+
+    title_label = tk.Label(
+        window,
+        text="Battalion Leave Dashboard",
+        font=("Arial", 18, "bold")
+    )
+    title_label.pack(pady=15)
+
+    stats = [
+        f"Total Leave Requests: {total_requests}",
+        f"Pending Leadership Review: {leadership_review}",
+        f"Ready For Submission: {ready_submission}",
+        f"High Recall Risk: {high_recall}",
+        f"Commercial Travel Requests: {commercial_travel}",
+        f"Average Leave Length: {int(average_leave)} day(s)"
+    ]
+
+    for stat in stats:
+        label = tk.Label(
+            window,
+            text=stat,
+            font=("Arial", 12)
+        )
+        label.pack(pady=5)
+
+    close_button = tk.Button(
+        window,
+        text="Close Dashboard",
+        command=window.destroy
+    )
+    close_button.pack(pady=20)
+
+    window.mainloop()
+
 def main():
     while True:
         display_main_menu()
@@ -2095,7 +2243,7 @@ def main():
         if main_choice == "BACK":
             continue
 
-        if main_choice == "5":
+        if main_choice == "6":
             print("\nGoodbye.")
             break
 
@@ -2109,6 +2257,10 @@ def main():
 
         if main_choice == "4":
             display_battalion_dashboard()
+            continue
+
+        if main_choice == "5":
+            launch_gui_dashboard()
             continue
 
         if main_choice == "1":
