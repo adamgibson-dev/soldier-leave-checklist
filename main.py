@@ -1766,140 +1766,425 @@ def get_confirmation_choice(prompt):
         print("\nInvalid response.")
         print("Please enter YES, EDIT, or CANCEL.\n")
 
+def display_main_menu():
+    print("\n" + "=" * 40)
+    print(" SOLDIER LEAVE ACCOUNTABILITY SYSTEM")
+    print("=" * 40)
+    print("1. Create Leave Request")
+    print("2. Search Soldier Leave History")
+    print("3. View All Leave Records")
+    print("4. Exit")
+
+def get_main_menu_choice():
+    valid_choices = [
+        "1",
+        "2",
+        "3",
+        "4"
+    ]
+
+    while True:
+        show_navigation_options()
+
+        choice = input(
+            "Select an option: "
+        ).strip()
+
+        choice = handle_navigation(
+            choice
+        )
+
+        if choice == "BACK":
+            return "BACK"
+
+        if choice in valid_choices:
+            return choice
+
+        print("\nInvalid option.")
+        print("Please select 1, 2, 3, or 4.\n")
+
+def search_leave_history():
+    filename = "leave_records.csv"
+
+    search_name = get_required_input(
+        "Enter Soldier name to search: "
+    )
+
+    if search_name == "BACK":
+        return
+
+    search_name = search_name.upper()
+
+    try:
+        with open(
+            filename,
+            "r",
+            newline=""
+        ) as file:
+            reader = csv.DictReader(file)
+
+            results_found = False
+
+            print("\n" + "=" * 40)
+            print(" LEAVE HISTORY RESULTS")
+            print("=" * 40)
+
+            for row in reader:
+                if search_name in row["Soldier"].upper():
+                    results_found = True
+
+                    print(
+                        f"\nSoldier: "
+                        f"{row['Soldier']}"
+                    )
+
+                    print(
+                        f"Unit: "
+                        f"{row['Unit']}"
+                    )
+
+                    print(
+                        f"Company: "
+                        f"{row['Company']}"
+                    )
+
+                    print(
+                        f"Leave Type: "
+                        f"{row['Leave Type']}"
+                    )
+
+                    print(
+                        f"Start Date: "
+                        f"{row['Start Date']}"
+                    )
+
+                    print(
+                        f"End Date: "
+                        f"{row['End Date']}"
+                    )
+
+                    print(
+                        f"Leave Days: "
+                        f"{row['Leave Days']}"
+                    )
+
+                    print(
+                        f"Status: "
+                        f"{row['Status']}"
+                    )
+
+                    print(
+                        f"Recommendation: "
+                        f"{row['Recommendation']}"
+                    )
+
+                    print("-" * 40)
+
+            if not results_found:
+                print(
+                    "\nNo leave records found "
+                    "for that Soldier."
+                )
+
+    except FileNotFoundError:
+        print(
+            "\nNo leave database found yet."
+        )
+
+        print(
+            "Create a leave request first.\n"
+        )
+
+def view_all_leave_records():
+    filename = "leave_records.csv"
+
+    try:
+        with open(
+            filename,
+            "r",
+            newline=""
+        ) as file:
+            reader = csv.DictReader(file)
+
+            print("\n" + "=" * 40)
+            print(" ALL LEAVE RECORDS")
+            print("=" * 40)
+
+            records_found = False
+
+            for row in reader:
+                records_found = True
+
+                print(
+                    f"\nSoldier: "
+                    f"{row['Soldier']}"
+                )
+
+                print(
+                    f"Leave Type: "
+                    f"{row['Leave Type']}"
+                )
+
+                print(
+                    f"Dates: "
+                    f"{row['Start Date']} "
+                    f"to {row['End Date']}"
+                )
+
+                print(
+                    f"Status: "
+                    f"{row['Status']}"
+                )
+
+                print(
+                    f"Recommendation: "
+                    f"{row['Recommendation']}"
+                )
+
+                print("-" * 40)
+
+            if not records_found:
+                print(
+                    "\nNo leave records found."
+                )
+
+    except FileNotFoundError:
+        print(
+            "\nNo leave database found yet."
+        )
+
+        print(
+            "Create a leave request first.\n"
+        )
+
 def main():
     while True:
-        print_header()
+        display_main_menu()
 
-        step = "rank"
+        main_choice = get_main_menu_choice()
 
-        rank = ""
-        first_name = ""
-        last_name = ""
-        soldier_name = ""
-        unit = ""
-        company = ""
-        start_date = ""
-        end_date = ""
-        choice = ""
-        checklist = None
-        risk_flags = []
-        emergency_contact = {}
+        if main_choice == "BACK":
+            continue
 
-        while True:
-            if step == "rank":
-                rank = get_valid_rank(
-                    "\nEnter Soldier rank: "
-                )
+        if main_choice == "4":
+            print("\nGoodbye.")
+            break
 
-                if rank == "BACK":
-                    continue
+        if main_choice == "2":
+            search_leave_history()
+            continue
 
-                step = "first_name"
+        if main_choice == "3":
+            view_all_leave_records()
+            continue
 
-            elif step == "first_name":
-                first_name = get_valid_name_part(
-                    "Enter Soldier first name: "
-                )
+        if main_choice == "1":
+            print_header()
 
-                if first_name == "BACK":
-                    step = "rank"
-                else:
-                    step = "last_name"
+            step = "rank"
 
-            elif step == "last_name":
-                last_name = get_valid_name_part(
-                    "Enter Soldier last name: "
-                )
+            rank = ""
+            first_name = ""
+            last_name = ""
+            soldier_name = ""
+            unit = ""
+            company = ""
+            start_date = ""
+            end_date = ""
+            choice = ""
+            checklist = None
+            risk_flags = []
+            emergency_contact = {}
 
-                if last_name == "BACK":
+            while True:
+                if step == "rank":
+                    rank = get_valid_rank(
+                        "\nEnter Soldier rank: "
+                    )
+
+                    if rank == "BACK":
+                        break
+
                     step = "first_name"
-                else:
-                    soldier_name = (
-                        f"{rank} "
-                        f"{first_name} "
-                        f"{last_name}"
+
+                elif step == "first_name":
+                    first_name = get_valid_name_part(
+                        "Enter Soldier first name: "
                     )
 
-                    step = "unit"
+                    if first_name == "BACK":
+                        step = "rank"
+                    else:
+                        step = "last_name"
 
-            elif step == "unit":
-                unit = get_valid_unit(
-                    "Enter unit: "
-                )
-
-                if unit == "BACK":
-                    step = "last_name"
-                else:
-                    step = "company"
-
-            elif step == "company":
-                company = get_valid_company(
-                    "Enter company: "
-                )
-
-                if company == "BACK":
-                    step = "unit"
-                else:
-                    step = "dates"
-
-            elif step == "dates":
-                start_date, end_date = (
-                    get_leave_dates()
-                )
-
-                if (
-                    start_date == "BACK"
-                    or end_date == "BACK"
-                ):
-                    step = "company"
-                else:
-                    step = "leave_type"
-
-            elif step == "leave_type":
-                display_menu()
-
-                choice = get_valid_menu_choice(
-                    "\nSelect an option: "
-                )
-
-                if choice == "BACK":
-                    step = "dates"
-
-                elif choice == "5":
-                    print(
-                        f"Goodbye, "
-                        f"{soldier_name}."
-                    )
-                    return
-
-                else:
-                    checklist = get_checklist(
-                        choice
+                elif step == "last_name":
+                    last_name = get_valid_name_part(
+                        "Enter Soldier last name: "
                     )
 
-                    step = "risk"
+                    if last_name == "BACK":
+                        step = "first_name"
+                    else:
+                        soldier_name = (
+                            f"{rank} "
+                            f"{first_name} "
+                            f"{last_name}"
+                        )
 
-            elif step == "risk":
-                risk_flags = get_risk_assessment()
+                        step = "unit"
 
-                if risk_flags == "BACK":
-                    step = "leave_type"
-                else:
-                    step = "emergency_contact"
+                elif step == "unit":
+                    unit = get_valid_unit(
+                        "Enter unit: "
+                    )
 
-            elif step == "emergency_contact":
-                emergency_contact = (
-                    get_emergency_contact_info()
-                )
+                    if unit == "BACK":
+                        step = "last_name"
+                    else:
+                        step = "company"
 
-                if emergency_contact == "BACK":
-                    step = "risk"
-                else:
-                    step = "confirm"
+                elif step == "company":
+                    company = get_valid_company(
+                        "Enter company: "
+                    )
 
-            elif step == "confirm":
-                confirmation = (
-                    confirm_leave_request(
+                    if company == "BACK":
+                        step = "unit"
+                    else:
+                        step = "dates"
+
+                elif step == "dates":
+                    start_date, end_date = (
+                        get_leave_dates()
+                    )
+
+                    if (
+                        start_date == "BACK"
+                        or end_date == "BACK"
+                    ):
+                        step = "company"
+                    else:
+                        step = "leave_type"
+
+                elif step == "leave_type":
+                    display_menu()
+
+                    choice = get_valid_menu_choice(
+                        "\nSelect an option: "
+                    )
+
+                    if choice == "BACK":
+                        step = "dates"
+
+                    elif choice == "5":
+                        break
+
+                    else:
+                        checklist = get_checklist(
+                            choice
+                        )
+
+                        step = "risk"
+
+                elif step == "risk":
+                    risk_flags = get_risk_assessment()
+
+                    if risk_flags == "BACK":
+                        step = "leave_type"
+                    else:
+                        step = "emergency_contact"
+
+                elif step == "emergency_contact":
+                    emergency_contact = (
+                        get_emergency_contact_info()
+                    )
+
+                    if emergency_contact == "BACK":
+                        step = "risk"
+                    else:
+                        step = "confirm"
+
+                elif step == "confirm":
+                    confirmation = (
+                        confirm_leave_request(
+                            checklist,
+                            soldier_name,
+                            unit,
+                            company,
+                            start_date,
+                            end_date,
+                            risk_flags,
+                            emergency_contact
+                        )
+                    )
+
+                    if confirmation == "YES":
+                        step = "print"
+
+                    elif confirmation == "EDIT":
+                        step = "edit_menu"
+
+                    elif confirmation == "CANCEL":
+                        print(
+                            "\nLeave request cancelled."
+                        )
+                        break
+
+                    elif confirmation == "BACK":
+                        step = "emergency_contact"
+
+                elif step == "edit_menu":
+                    print("\n" + "=" * 40)
+                    print(" EDIT LEAVE REQUEST")
+                    print("=" * 40)
+                    print("1. Soldier Info")
+                    print("2. Unit / Company")
+                    print("3. Leave Dates")
+                    print("4. Leave Type")
+                    print("5. Risk Assessment")
+                    print("6. Emergency Contact")
+                    print("7. Return to Confirmation")
+
+                    edit_choice = input(
+                        "\nSelect section to edit: "
+                    ).strip()
+
+                    edit_choice = handle_navigation(
+                        edit_choice
+                    )
+
+                    if edit_choice == "BACK":
+                        step = "confirm"
+
+                    elif edit_choice == "1":
+                        step = "rank"
+
+                    elif edit_choice == "2":
+                        step = "unit"
+
+                    elif edit_choice == "3":
+                        step = "dates"
+
+                    elif edit_choice == "4":
+                        step = "leave_type"
+
+                    elif edit_choice == "5":
+                        step = "risk"
+
+                    elif edit_choice == "6":
+                        step = "emergency_contact"
+
+                    elif edit_choice == "7":
+                        step = "confirm"
+
+                    else:
+                        print(
+                            "\nInvalid option. "
+                            "Please select 1 through 7."
+                        )
+
+                elif step == "print":
+                    print_checklist(
                         checklist,
                         soldier_name,
                         unit,
@@ -1909,107 +2194,8 @@ def main():
                         risk_flags,
                         emergency_contact
                     )
-                )
 
-                if confirmation == "YES":
-                    step = "print"
-
-                elif confirmation == "EDIT":
-                    step = "edit_menu"
-
-                elif confirmation == "CANCEL":
-                    print(
-                        "\nLeave request cancelled."
-                    )
                     break
-
-                elif confirmation == "BACK":
-                    step = "emergency_contact"
-
-            elif step == "edit_menu":
-                print("\n" + "=" * 40)
-                print(" EDIT LEAVE REQUEST")
-                print("=" * 40)
-                print("1. Soldier Info")
-                print("2. Unit / Company")
-                print("3. Leave Dates")
-                print("4. Leave Type")
-                print("5. Risk Assessment")
-                print("6. Emergency Contact")
-                print("7. Return to Confirmation")
-
-                edit_choice = input(
-                    "\nSelect section to edit: "
-                ).strip()
-
-                edit_choice = handle_navigation(
-                    edit_choice
-                )
-
-                if edit_choice == "BACK":
-                    step = "confirm"
-
-                elif edit_choice == "1":
-                    step = "rank"
-
-                elif edit_choice == "2":
-                    step = "unit"
-
-                elif edit_choice == "3":
-                    step = "dates"
-
-                elif edit_choice == "4":
-                    step = "leave_type"
-
-                elif edit_choice == "5":
-                    step = "risk"
-
-                elif edit_choice == "6":
-                    step = "emergency_contact"
-
-                elif edit_choice == "7":
-                    step = "confirm"
-
-                else:
-                    print(
-                        "\nInvalid option. "
-                        "Please select 1 through 7."
-                    )
-
-            elif step == "print":
-                print_checklist(
-                    checklist,
-                    soldier_name,
-                    unit,
-                    company,
-                    start_date,
-                    end_date,
-                    risk_flags,
-                    emergency_contact
-                )
-
-                step = "run_again"
-
-            elif step == "run_again":
-                run_again = get_yes_or_no(
-                    "\nWould you like "
-                    "to create another "
-                    "checklist? "
-                    "(YES/NO): "
-                )
-
-                if run_again == "BACK":
-                    step = "confirm"
-
-                elif run_again == "YES":
-                    break
-
-                elif run_again == "NO":
-                    print(
-                        f"\nGoodbye, "
-                        f"{soldier_name}."
-                    )
-                    return
 
 if __name__ == "__main__":
     main()
