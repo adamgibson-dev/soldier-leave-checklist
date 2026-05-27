@@ -8,13 +8,14 @@ def print_header():
     print(" SOLDIER LEAVE CHECKLIST GENERATOR")
     print("=" * 40)
 
-def display_menu():
-    print("\nSelect Leave Type")
-    print("-" * 17)
-    print("1. Ordinary Leave")
-    print("2. Emergency Leave")
-    print("3. Convalescent Leave")
-    print("4. Pass")
+def display_main_menu():
+    print("\n" + "=" * 40)
+    print(" SOLDIER LEAVE ACCOUNTABILITY SYSTEM")
+    print("=" * 40)
+    print("1. Create Leave Request")
+    print("2. Search Soldier Leave History")
+    print("3. View All Leave Records")
+    print("4. Battalion Dashboard")
     print("5. Exit")
 
 
@@ -915,7 +916,13 @@ def get_required_input(prompt):
 
 def get_valid_phone_number(prompt):
     while True:
+        show_navigation_options()
+
         phone_number = input(prompt).strip()
+        phone_number = handle_navigation(phone_number)
+
+        if phone_number == "BACK":
+            return "BACK"
 
         cleaned_phone_number = (
             phone_number
@@ -931,17 +938,9 @@ def get_valid_phone_number(prompt):
         ):
             return phone_number
 
-        print(
-            "\nInvalid phone number."
-        )
-
-        print(
-            "Please enter a 10-digit phone number."
-        )
-
-        print(
-            "Example: 907-555-1234\n"
-        )
+        print("\nInvalid phone number.")
+        print("Please enter a 10-digit phone number.")
+        print("Example: 907-555-1234\n")
 
 
 def get_valid_travel_method(prompt):
@@ -1288,41 +1287,20 @@ def get_valid_relationship(prompt):
     ]
 
     while True:
-        relationship = (
-            input(prompt)
-            .strip()
-            .upper()
-        )
+        show_navigation_options()
+
+        relationship = input(prompt).strip().upper()
+        relationship = handle_navigation(relationship)
+
+        if relationship == "BACK":
+            return "BACK"
 
         if relationship in valid_relationships:
             return relationship.title()
 
-        print(
-            "\nInvalid relationship."
-        )
-
-        print(
-            "Valid options include:"
-        )
-
-        print(
-            ", ".join(valid_relationships)
-            + "\n"
-        )
-
-    while True:
-        travel_method = input(prompt).strip().upper()
-
-        if travel_method in valid_methods:
-            return travel_method
-
-        print(
-            "\nInvalid travel method."
-        )
-
-        print(
-            "Valid options: POV, FLIGHT, BUS, TRAIN, OTHER\n"
-        )
+        print("\nInvalid relationship.")
+        print("Valid options include:")
+        print(", ".join(valid_relationships) + "\n")
 
 def get_valid_name_part(prompt):
     while True:
@@ -1773,26 +1751,17 @@ def display_main_menu():
     print("1. Create Leave Request")
     print("2. Search Soldier Leave History")
     print("3. View All Leave Records")
-    print("4. Exit")
+    print("4. Battalion Dashboard")
+    print("5. Exit")
 
 def get_main_menu_choice():
-    valid_choices = [
-        "1",
-        "2",
-        "3",
-        "4"
-    ]
+    valid_choices = ["1", "2", "3", "4", "5"]
 
     while True:
         show_navigation_options()
 
-        choice = input(
-            "Select an option: "
-        ).strip()
-
-        choice = handle_navigation(
-            choice
-        )
+        choice = input("Select an option: ").strip()
+        choice = handle_navigation(choice)
 
         if choice == "BACK":
             return "BACK"
@@ -1801,7 +1770,7 @@ def get_main_menu_choice():
             return choice
 
         print("\nInvalid option.")
-        print("Please select 1, 2, 3, or 4.\n")
+        print("Please select 1 through 5.\n")
 
 def search_leave_history():
     filename = "leave_records.csv"
@@ -1957,6 +1926,166 @@ def view_all_leave_records():
             "Create a leave request first.\n"
         )
 
+def display_battalion_dashboard():
+    filename = "leave_records.csv"
+
+    try:
+        with open(
+            filename,
+            "r",
+            newline=""
+        ) as file:
+            reader = list(
+                csv.DictReader(file)
+            )
+
+        total_requests = len(reader)
+
+        leadership_review = sum(
+            1 for row in reader
+            if row["Status"]
+            == "Requires Leadership Review"
+        )
+
+        ready_submission = sum(
+            1 for row in reader
+            if row["Status"]
+            == "Ready for Submission"
+        )
+
+        high_recall = sum(
+            1 for row in reader
+            if row["Recall Risk"]
+            == "HIGH"
+        )
+
+        overseas_travel = sum(
+            1 for row in reader
+            if row["Travel Category"]
+            == "OVERSEAS"
+        )
+
+        if total_requests > 0:
+            average_leave = round(
+                sum(
+                    int(
+                        row["Leave Days"]
+                    )
+                    for row in reader
+                ) / total_requests
+            )
+        else:
+            average_leave = 0
+
+        travel_methods = {}
+
+        leave_types = {}
+
+        for row in reader:
+            travel_method = (
+                row["Travel Method"]
+            )
+
+            leave_type = (
+                row["Leave Type"]
+            )
+
+            travel_methods[
+                travel_method
+            ] = (
+                travel_methods.get(
+                    travel_method,
+                    0
+                ) + 1
+            )
+
+            leave_types[
+                leave_type
+            ] = (
+                leave_types.get(
+                    leave_type,
+                    0
+                ) + 1
+            )
+
+        most_common_travel = (
+            max(
+                travel_methods,
+                key=travel_methods.get
+            )
+            if travel_methods
+            else "N/A"
+        )
+
+        most_common_leave = (
+            max(
+                leave_types,
+                key=leave_types.get
+            )
+            if leave_types
+            else "N/A"
+        )
+
+        print("\n" + "=" * 40)
+        print(" BATTALION LEAVE DASHBOARD")
+        print("=" * 40)
+
+        print(
+            f"Total Leave Requests: "
+            f"{total_requests}"
+        )
+
+        print(
+            f"Pending Leadership Review: "
+            f"{leadership_review}"
+        )
+
+        print(
+            f"Ready For Submission: "
+            f"{ready_submission}"
+        )
+
+        print(
+            f"High Recall Risk: "
+            f"{high_recall}"
+        )
+
+        print(
+            f"Overseas Travel: "
+            f"{overseas_travel}"
+        )
+
+        print(
+            f"Average Leave Length: "
+            f"{average_leave} day(s)"
+        )
+
+        print("\nMost Common Travel Method:")
+        print(most_common_travel)
+
+        print("\nMost Common Leave Type:")
+        print(most_common_leave)
+
+    except FileNotFoundError:
+        print(
+            "\nNo leave database "
+            "found yet."
+        )
+
+        print(
+            "Create leave requests "
+            "first.\n"
+        )
+
+def display_menu():
+    print("\nSelect Leave Type")
+    print("-" * 17)
+    print("1. Ordinary Leave")
+    print("2. Emergency Leave")
+    print("3. Convalescent Leave")
+    print("4. Pass")
+    print("5. Back")
+
 def main():
     while True:
         display_main_menu()
@@ -1966,7 +2095,7 @@ def main():
         if main_choice == "BACK":
             continue
 
-        if main_choice == "4":
+        if main_choice == "5":
             print("\nGoodbye.")
             break
 
@@ -1976,6 +2105,10 @@ def main():
 
         if main_choice == "3":
             view_all_leave_records()
+            continue
+
+        if main_choice == "4":
+            display_battalion_dashboard()
             continue
 
         if main_choice == "1":
